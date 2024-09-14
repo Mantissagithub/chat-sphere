@@ -13,15 +13,15 @@ const WorkArea = () => {
   ];
 
   return (
-    <div className="flex flex-col w-full h-full bg-gradient-to-br from-gray-800 to-gray-600 p-6 space-y-4 text-white"> {/* Dark gradient and white text */}
-      
+    <div className="flex flex-col w-full h-full bg-transparent from-gray-800 to-gray-600 p-6 space-y-4 text-white">
+
       {/* Chat Header */}
       <div className="chatHeader flex items-center justify-between p-4 bg-gray-700 shadow-md rounded-lg border-b border-gray-600">
         <IconButton className="text-yellow-500">
-            <AccountCircleIcon fontSize="large" />
+          <AccountCircleIcon fontSize="large" />
         </IconButton>
-        <h2 className="text-2xl font-bold tracking-wide">John Doe</h2> {/* Larger and bold text */}
-        <IconButton className="text-gray-500 hover:text-red-500 transition-colors">
+        <h2 className="text-2xl font-bold tracking-wide">John Doe</h2> {/* Larger, bold text */}
+        <IconButton className="text-gray-400 hover:text-red-500 transition-colors">
           <DeleteOutlineIcon />
         </IconButton>
       </div>
@@ -30,17 +30,17 @@ const WorkArea = () => {
       <div className="messageContainer flex-1 bg-gray-700 overflow-y-auto p-6 rounded-lg shadow-inner space-y-4">
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.fromMe ? 'justify-end' : 'justify-start'} w-full`}>
-            <div className={`messageBubble max-w-xs p-4 rounded-lg shadow-md ${msg.fromMe ? 'bg-yellow-500 text-black' : 'bg-gray-100 text-gray-800'} space-y-1`}>
+            <div className={`messageBubble max-w-xs p-4 rounded-2xl shadow-md ${msg.fromMe ? 'bg-yellow-500 text-black' : 'bg-gray-200 text-gray-900'} space-y-1`}>
               <p className="font-bold text-sm">{msg.user}</p>
               <p className="text-sm">{msg.text}</p>
-              <p className="text-xs text-gray-400">{msg.time}</p>
+              <p className="text-xs text-gray-500">{msg.time}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Chat Input Area */}
-      <div className="chatInputArea flex items-center bg-gray-700 shadow-lg p-3 rounded-lg border-t border-gray-600">
+      <div className="chatInputArea flex items-center bg-gray-800 shadow-lg p-3 rounded-lg border-t border-gray-600">
         <TextField
           placeholder="Type a message..."
           variant="outlined"
@@ -48,11 +48,11 @@ const WorkArea = () => {
           size="small"
           className="mr-3"
           InputProps={{
-            className: "bg-gray-800 text-white rounded-full px-4 py-2", // Rounded input for chat
+            className: "bg-white text-white rounded-full px-4 py-2", // Rounded input field
           }}
         />
-        <IconButton className="bg-yellow-500 text-black hover:bg-yellow-600 transition-all rounded-full p-3 shadow-md">
-          <SendIcon fontSize="medium" />
+        <IconButton className="bg-yellow-500 text-white hover:bg-yellow-600 transition-all rounded-full p-3 shadow-md">
+          <SendIcon fontSize="medium text-white hover:text-green" />
         </IconButton>
       </div>
     </div>
