@@ -9,6 +9,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ConversationsItem from "./conversationsItem";
 import CreateGroups from "./createGroups";
 import { IconButton, TextField, InputAdornment, Modal, Box } from "@mui/material";
+import { motion } from 'framer-motion';
 
 const SideBar = () => {
   const [openCreateGroup, setOpenCreateGroup] = useState(false);
@@ -19,34 +20,47 @@ const SideBar = () => {
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
   return (
-    <div className={`min-h-full flex flex-col w-full space-y-4 transition-all duration-300 ease-in-out bg-transparent`}>
-      {/* Icons Section */}
-      <div className={`flex justify-between items-center p-4 transition-all duration-300 ${darkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'} rounded-lg shadow-md`}>
-        <IconButton className="hover:bg-gray-500 transition-all">
+    <motion.div 
+      className={`min-h-full flex flex-col w-full space-y-4 bg-transparent`}
+      initial={{ x: -100, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+    >
+      {/* Header Section with Icons */}
+      <motion.div 
+        className={`flex justify-between items-center p-4 rounded-lg shadow-lg transition-all duration-300 ${darkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'}`}
+        whileHover={{ scale: 1.02 }}
+      >
+        <IconButton className="hover:bg-gray-600 transition-all">
           <AccountCircleIcon fontSize="large" className={`${darkMode ? 'text-white' : 'text-black'}`} />
         </IconButton>
         <div className="flex space-x-4">
-          <IconButton className="hover:bg-gray-500 transition-all">
+          <IconButton className="hover:bg-gray-600 transition-all">
             <PersonAddIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
           </IconButton>
-          <IconButton className="hover:bg-gray-500 transition-all">
+          <IconButton className="hover:bg-gray-600 transition-all">
             <GroupAddIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
           </IconButton>
-          <IconButton className="hover:bg-gray-500 transition-all" onClick={handleCreateGroupOpen}>
+          <IconButton className="hover:bg-gray-600 transition-all" onClick={handleCreateGroupOpen}>
             <AddCircleOutlineIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
           </IconButton>
-          <IconButton className="hover:bg-gray-500 transition-all" onClick={toggleDarkMode}>
+          <IconButton className="hover:bg-gray-600 transition-all" onClick={toggleDarkMode}>
             {darkMode ? (
-              <LightModeIcon className="text-white" />
+              <LightModeIcon className="text-yellow-400" />
             ) : (
-              <DarkModeIcon className="text-black" />
+              <DarkModeIcon className="text-gray-700" />
             )}
           </IconButton>
         </div>
-      </div>
+      </motion.div>
 
       {/* Search Section */}
-      <div className={`p-4 transition-all duration-300 ${darkMode ? 'bg-gray-700' : 'bg-gray-300'} rounded-lg shadow-md`}>
+      <motion.div 
+        className={`p-4 rounded-lg shadow-md transition-all duration-300 ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
         <TextField
           placeholder="Search..."
           variant="outlined"
@@ -58,41 +72,57 @@ const SideBar = () => {
                 <SearchIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
               </InputAdornment>
             ),
-            className: `rounded-full transition-all ${darkMode ? 'bg-gray-600 text-white' : 'bg-white text-white'}`, 
+            className: `rounded-full transition-all ${darkMode ? 'bg-gray-600 text-white' : 'bg-white text-black'}`, 
           }}
         />
-      </div>
+      </motion.div>
 
       {/* Conversations List */}
-      <div className={`flex-1 overflow-y-auto transition-all duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'} p-4 rounded-lg shadow-md`}>
+      <motion.div 
+        className={`flex-1 overflow-y-auto transition-all duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'} p-4 rounded-lg shadow-lg`}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+      >
+        {/* Map through conversation items */}
         <ConversationsItem />
-      </div>
+      </motion.div>
 
-      {/* Modal for creating group */}
+      {/* Modal for Creating Group */}
       <Modal
         open={openCreateGroup}
         onClose={handleCreateGroupClose}
         aria-labelledby="create-group-modal"
         aria-describedby="modal-to-create-a-new-group"
+        closeAfterTransition
+        BackdropProps={{
+          timeout: 500,
+        }}
       >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: darkMode ? 'gray.800' : 'white',
-            boxShadow: 24,
-            p: 4,
-            width: 400,
-            borderRadius: 2,
-          }}
-          className="transition-all duration-300 ease-in-out"
+        <motion.div 
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
         >
-          <CreateGroups onClose={handleCreateGroupClose} />
-        </Box>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              bgcolor: darkMode ? 'gray.800' : 'white',
+              boxShadow: 24,
+              p: 4,
+              width: 400,
+              borderRadius: 2,
+            }}
+          >
+            <CreateGroups onClose={handleCreateGroupClose} />
+          </Box>
+        </motion.div>
       </Modal>
-    </div>
+    </motion.div>
   );
 };
 
