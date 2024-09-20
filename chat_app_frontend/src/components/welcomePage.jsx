@@ -4,8 +4,8 @@ import { gsap } from 'gsap';
 import { motion } from 'framer-motion';
 import Particles from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
-import axios from 'axios'; // Import axios for API calls
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; 
 
 const images = [
   'https://media.istockphoto.com/id/480336296/photo/tracked-excavators.jpg?s=2048x2048&w=is&k=20&c=UKB4a0hylVCaKL_Qz29J8xZVuUVkF8b4u3n_w1OQOQs=',
@@ -17,7 +17,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate(); 
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -29,8 +29,8 @@ const LoginPage = () => {
 
       if (response.status === 200) {
         console.log('Login successful:', response.data);
+        localStorage.setItem('token', response.data.token);
 
-        // Redirect to the chat page on successful login
         navigate('/chat');
       } else {
         setError('Invalid credentials');

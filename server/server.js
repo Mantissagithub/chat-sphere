@@ -235,13 +235,13 @@ app.get('/groups/:groupId/messages', authMiddleware, async(req, res) => {
     }
 })
 
-app.post('/upload', authMiddleware, upload.single('file'), (req, res) => {
-    if(!req.file){
-        return res.status(400).json({message : 'NO file uploaded'});
-    }
+// app.post('/upload', authMiddleware, upload.single('file'), (req, res) => {
+//     if(!req.file){
+//         return res.status(400).json({message : 'NO file uploaded'});
+//     }
 
-    res.json({ fileUrl : `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`});
-});
+//     res.json({ fileUrl : `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`});
+// });
 
 //websocket connection
 io.on('connection', (socket) => {

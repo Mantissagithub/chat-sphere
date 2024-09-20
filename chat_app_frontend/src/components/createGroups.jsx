@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// CreateGroups.jsx
+import React, { useState } from'react';
 import DoneOutlineIcon from '@mui/icons-material/DoneOutline';
 import { IconButton, TextField } from '@mui/material';
 import { motion } from 'framer-motion';
@@ -11,7 +12,7 @@ const CreateGroups = ({ onClose }) => {
   };
 
   const handleCreateGroup = () => {
-    if (groupName.trim() !== '') {
+    if (groupName.trim()!== '') {
       // Logic to create the group
       console.log(`Group "${groupName}" created.`);
       onClose();  // Close the modal after creating the group
