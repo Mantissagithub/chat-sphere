@@ -3,6 +3,7 @@ import React, { useState } from'react';
 import DoneOutlineIcon from '@mui/icons-material/DoneOutline';
 import { IconButton, TextField } from '@mui/material';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 
 const CreateGroups = ({ onClose }) => {
   const [groupName, setGroupName] = useState('');  // State for the group name
@@ -11,11 +12,26 @@ const CreateGroups = ({ onClose }) => {
     setGroupName(e.target.value);
   };
 
-  const handleCreateGroup = () => {
-    if (groupName.trim()!== '') {
-      // Logic to create the group
-      console.log(`Group "${groupName}" created.`);
-      onClose();  // Close the modal after creating the group
+  const handleCreateGroup = async() => {
+    if (groupName.trim() !== '') {
+      try {
+        const token = localStorage.getItem('token');
+        // console.log('Token:', token);  // Debugging token
+        const resp = await axios.post('http://localhost:3000/group', {
+          name: groupName
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (resp.status === 201) {
+          console.log(`Group "${groupName}" created successfully`);
+          onClose();
+        }
+      } catch (error) {
+        console.error('Error creating group:', error.response?.data || error.message);
+      }
     } else {
       console.log('Please enter a group name.');
     }

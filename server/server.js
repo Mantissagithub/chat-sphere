@@ -28,7 +28,9 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true },
     password: { type: String, required: true },
     isOnline : {type : Boolean, default : false},
-    socketId : String
+    socketId : String,
+    friends : [{type : mongoose.Schema.Types.ObjectId, ref : 'User'}],
+    groups : [{type : mongoose.Schema.Types.ObjectId, ref : 'Group'}],
 });
 
 const messageSchema = new mongoose.Schema({
@@ -43,22 +45,25 @@ const groupSchema = new mongoose.Schema({
     name : String,
     members : [{type: mongoose.Schema.Types.ObjectId, ref : 'User'}],
     createdAt : {type : Date, default : Date.now},
-})
+});
 
 const User = mongoose.model('User', userSchema);
 const Message = mongoose.model('Message', messageSchema)
 const Group = mongoose.model('Group', groupSchema);
 // JWT Authentication Middleware
 const authMiddleware = (req, res, next) => {
-    const token = req.header('Authorization');
-    if (!token) return res.status(401).json({ message: "Access Denied." });
-
-    try {
-        const verified = jwt.verify(token, jwt_secret);
-        req.user = verified;
-        next();
-    } catch (error) {
-        res.status(400).json({ message: "Token invalid" });
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        jwt.verify(token, jwt_secret, (err, decoded) => {
+            if (err) {
+                return res.status(403).json({ message: "Token invalid" });
+            }
+            req.user = decoded;
+            next();
+        });
+    } else {
+        res.status(401).json({ message: "Access Denied." });
     }
 };
 
@@ -110,61 +115,161 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.post('/logout', authMiddleware, async(req, res) => {
+//logout route
+app.post('/logout', authMiddleware, async (req, res) => {
     try {
-        const {email} = req.body;
-        const user = await User.findOne({email});
+        const userId = req.user._id;
 
-        if(!user){
-            return res.status(404).json({message : 'User not found'});
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
         }
-
+        
         user.isOnline = false;
+        user.socketId = null;
         await user.save();
 
-        res.json({message : 'User logged out successfully'});
+        
+        res.status(200).json({ message: 'User logged out successfully' });
     } catch (error) {
-        res.status(400).json({message : error.message});
+        console.error('Logout error:', error);  
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
 //create a group
 app.post('/group', authMiddleware, async (req, res) => {
     try {
-        const {name} = req.body;
+      const { name } = req.body;
+      const group = new Group({ name });
+      await group.save();
+      res.status(201).json(group);  // Send status 201 for created
+    } catch (error) {
+      console.error('Error saving group:', error);  // Add this for debugging
+      res.status(400).json({ message: error.message });
+    }
+});
 
-        const group = new Group({name});
+//retrieve all users
+app.get('/users', authMiddleware, async (req, res) => {
+    try {
+        const query = req.query.query || ''; 
+        const users = await User.find({ 
+            fullName: { $regex: query, $options: 'i' } 
+        }).select('fullName _id'); 
+
+        res.json(users);
+    } catch (error) {
+        console.error('Error retrieving users:', error);
+        res.status(500).json({ message: 'Server error, please try again later' });
+    }
+});
+
+//retrieve all groups users is in
+app.get('/userGroups', authMiddleware, async (req, res) => {
+    try {
+        const currentUser = await User.findById(req.user._id).populate('groups', 'name');
+        const groupNames = currentUser.groups.map(group => group.name);
+        res.json(groupNames);
+    } catch (error) {
+        console.error('Error retrieving user groups:', error);
+        res.status(500).json({ message: 'Server error, please try again later' });
+    }
+});
+//retrieve all groups
+app.get('/groups', authMiddleware, async (req, res) => {
+    try {
+        const query = req.query.query || '';
+        const groups = await Group.find({
+            name : { $regex: query, $options: 'i'}
+        }).select('name _id');
+
+        res.json(groups);
+    } catch (error) {
+        console.error('Error retrieving users:', error);
+        res.status(500).json({ message: 'Server error, please try again later' })
+    }
+});
+
+//search for groups / user to add frined or group
+app.post('/search/user', authMiddleware, async (req, res) => {
+    try {
+        const { userId } = req.body;  
+
+        const friendUser = await User.findById(userId); 
+        if (!friendUser) {
+            return res.status(400).json({ message: 'User not found' });
+        }
+
+        const currentUser = await User.findById(req.user._id);
+        if (currentUser.friends.includes(friendUser._id)) {
+            return res.status(400).json({ message: 'User is already your friend' });
+        }
+
+        currentUser.friends.push(friendUser._id);
+        friendUser.friends.push(currentUser._id);
+
+        await currentUser.save();
+        await friendUser.save();
+
+        res.status(200).json({ message: `${friendUser.fullName} added as a friend successfully` });
+    } catch (error) {
+        console.error('Error adding friend:', error);
+        res.status(500).json({ message: 'Server error, please try again later' });
+    }
+});
+
+
+app.post('/search/group', authMiddleware, async(req, res) => {
+    try {
+        const {groupName} = req.body;
+
+        const group = await Group.findOne({name : groupName});
+        if(!group){
+            return res.status(400).json({message : 'Group not found'});
+        }
+
+        const currentUser = await User.findById(req.user._id);
+        if(currentUser.groups.includes(group._id)){
+            return res.status(400).json({message : 'You are already into the group'});
+        }
+
+        currentUser.groups.push(group._id);
+        group.members.push(currentUser._id);
+
+        await currentUser.save();
         await group.save();
 
-        res.status(201).json(group);
+        return res.status(200).json({message : `You are successfully added to the group ${group.name}`})
     } catch (error) {
-        res.status(400).json({message : error.message});
+        console.error('Error adding you to the group:', error);
+        res.status(500).json({ message: 'Server error, please try again later' });
     }
 });
 
-//add member to a group
-app.post('/group/:groupId/members', authMiddleware, async(req, res) => {
-    try {
-        const {groupId} = req.params;
-        const {userId} = req.body;
+// //add member to a group
+// app.post('/group/:groupId/members', authMiddleware, async(req, res) => {
+//     try {
+//         const {groupId} = req.params;
+//         const {userId} = req.body;
 
-        const group = await Group.findOne(groupId);
+//         const group = await Group.findOne(groupId);
 
-        if(!group){
-            return res.status(404).json({message : 'Group not found'});
-        }
+//         if(!group){
+//             return res.status(404).json({message : 'Group not found'});
+//         }
 
-        if(!group.members.includes(userId)){
-            group.members.push(userId);
-            await group.save();
-            res.json(group);
-        }else{
-            res.status(400).json({message : 'User is already a member of this group'});
-        }
-    } catch (error) {
-        res.status(400).json({message : error.message});
-    }
-});
+//         if(!group.members.includes(userId)){
+//             group.members.push(userId);
+//             await group.save();
+//             res.json(group);
+//         }else{
+//             res.status(400).json({message : 'User is already a member of this group'});
+//         }
+//     } catch (error) {
+//         res.status(400).json({message : error.message});
+//     }
+// });
 
 app.post('/messages', authMiddleware, async(req, res) => {
     try{
