@@ -4,7 +4,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import { motion } from 'framer-motion';
 import axios from 'axios';  // Axios for making API calls
 
-const ConversationsItem = ({ darkMode }) => {  // Accept darkMode as a prop
+const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {  // Accept darkMode and selection handlers as props
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
 
@@ -48,6 +48,7 @@ const ConversationsItem = ({ darkMode }) => {  // Accept darkMode as a prop
               key={user._id}  // Use user's _id as a unique key
               className={`flex items-center p-4 rounded-lg cursor-pointer transition-all duration-300 ease-in-out shadow-md mb-2 
               ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}
+              onClick={() => onSelectUser(user)} // Call handler on click
               whileHover={{ scale: 1.05, boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.3)" }}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: 20 }}
@@ -75,6 +76,7 @@ const ConversationsItem = ({ darkMode }) => {  // Accept darkMode as a prop
               key={group._id}  // Use group's _id as a unique key
               className={`flex items-center p-4 rounded-lg cursor-pointer transition-all duration-300 ease-in-out shadow-md mb-2 
               ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}
+              onClick={() => onSelectGroup(group)} // Call handler on click
               whileHover={{ scale: 1.05, boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.3)" }}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: 20 }}
@@ -85,7 +87,7 @@ const ConversationsItem = ({ darkMode }) => {  // Accept darkMode as a prop
                 <GroupIcon className={`${darkMode ? 'text-blue-500' : 'text-blue-600'} text-3xl`} />
               </div>
               <div className="ml-4 flex flex-col justify-center">
-                <p className={`text-base font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>{group}</p>
+                <p className={`text-base font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>{group.name}</p> {/* Assuming group has a name property */}
                 <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Group chat...</p> {/* Replace with actual group info */}
               </div>
             </motion.div>

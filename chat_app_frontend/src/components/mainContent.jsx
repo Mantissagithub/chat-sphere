@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SideBar from "./sideBar";
 import WorkArea from "./workArea";
+import ConversationsItem from "./conversationsItem"; // Import ConversationsItem
 import { motion } from 'framer-motion';
 
 const images = [
@@ -11,6 +12,10 @@ const images = [
 
 const MainContent = () => {
   const [currentImage, setCurrentImage] = useState(0);
+  const [darkMode, setDarkMode] = useState(false);
+  // const [selectedUserOrGroup, setSelectedUserOrGroup] = useState(null); // State for selected user/group
+  const [selectedUser, setSelectedUser] = useState(null); 
+  const [selectedGroup, setSelectedGroup] = useState(null); 
 
   // Function to cycle through the images
   useEffect(() => {
@@ -20,17 +25,29 @@ const MainContent = () => {
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);
 
+  const handleUserSelect = (user) => {
+    console.log("Selected User:", user);
+    setSelectedUser(user);
+    setSelectedGroup(null); // Clear selected group if user is selected
+  };
+
+  const handleGroupSelect = (group) => {
+    console.log("Selected Group:", group);
+    setSelectedGroup(group);
+    setSelectedUser(null); // Clear selected user if group is selected
+  };
+
   return (
     <motion.div 
       className="relative flex items-center justify-center h-screen"
       style={{
-        backgroundImage: `url(${images[currentImage]})`, // Dynamic background outside the container
+        backgroundImage: `url(${images[currentImage]})`, 
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         transition: 'background-image 2s ease-in ease-out',
       }}
     >
-      {/* Semi-transparent overlay for contrast */}
+      {/* Semi-transparent overlay */}
       <div className="absolute top-0 left-0 w-full h-full bg-black opacity-40 z-0"></div>
 
       {/* Main Content Container */}
@@ -47,30 +64,36 @@ const MainContent = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
         >
-          {/* Sidebar Section with First Image */}
+          {/* Left Section */}
           <motion.div 
-            className="w-1/3 bg-cover bg-center bg-no-repeat p-6 flex flex-col space-y-6 text-white h-full"
-            style={{
-              backgroundImage: 'url(https://plus.unsplash.com/premium_photo-1663951812955-b71be2657fd1?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)'
-            }}
+            className="w-1/3 p-6 flex flex-col space-y-6 h-full"
             initial={{ x: -100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <SideBar />
+            {/* Sidebar */}
+            <div className="h-1/3 bg-blue-500 p-4">
+              <SideBar />
+            </div>
+
+            {/* Conversations List */}
+            <div className="h-2/3 bg-gray-100 p-4 overflow-y-auto">
+              <ConversationsItem 
+                darkMode={darkMode} 
+                onSelectUser={handleUserSelect} 
+                onSelectGroup={handleGroupSelect} 
+              />
+            </div>
           </motion.div>
 
-          {/* Work Area Section with Second Image */}
+          {/* WorkArea Section */}
           <motion.div 
-            className="w-2/3 bg-cover bg-center bg-no-repeat p-6 flex flex-col space-y-6 text-white h-full"
-            style={{
-              backgroundImage: 'url(https://plus.unsplash.com/premium_photo-1666611836463-edff99e87716?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)'
-            }}
-            initial={{ x: 100, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
+            className="w-2/3 p-6 flex flex-col space-y-6 bg-white text-black h-full"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <WorkArea />
+            <WorkArea  selectedUser={selectedUser} selectedGroup={selectedGroup} /> {/* Pass selected user/group */}
           </motion.div>
         </motion.div>
       </motion.div>

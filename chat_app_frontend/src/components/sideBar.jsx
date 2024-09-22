@@ -7,7 +7,7 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import SearchIcon from '@mui/icons-material/Search';
 import LogoutIcon from '@mui/icons-material/Logout';
-import ConversationsItem from "./conversationsItem";
+// import ConversationsItem from "./conversationsItem";
 import CreateGroups from "./createGroups";
 import AddFriend from "./addFriend";
 import AddGroup from "./addGroup"; // Import the AddGroup component
@@ -117,16 +117,16 @@ const SideBar = () => {
         />
       </motion.div>
 
-      {/* Conversations List */}
+      {/* Conversations List
       <motion.div 
         className={`flex-1 overflow-y-auto transition-all duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'} p-4 rounded-lg shadow-lg`}
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeInOut" }}
       >
-        {/* Map through conversation items */}
+        
         <ConversationsItem darkMode={darkMode}/>
-      </motion.div>
+      </motion.div> */}
 
       {/* Modal for Adding Friend */}
       <Modal

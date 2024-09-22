@@ -12,11 +12,10 @@ const CreateGroups = ({ onClose }) => {
     setGroupName(e.target.value);
   };
 
-  const handleCreateGroup = async() => {
+  const handleCreateGroup = async () => {
     if (groupName.trim() !== '') {
       try {
         const token = localStorage.getItem('token');
-        // console.log('Token:', token);  // Debugging token
         const resp = await axios.post('http://localhost:3000/group', {
           name: groupName
         }, {
@@ -27,7 +26,9 @@ const CreateGroups = ({ onClose }) => {
         
         if (resp.status === 201) {
           console.log(`Group "${groupName}" created successfully`);
-          onClose();
+          onClose(); // Attempt to close the modal
+          console.log("Modal closed"); // Log for verification
+          setGroupName(''); // Clear input if desired
         }
       } catch (error) {
         console.error('Error creating group:', error.response?.data || error.message);

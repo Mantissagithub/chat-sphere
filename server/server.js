@@ -34,11 +34,11 @@ const userSchema = new mongoose.Schema({
 });
 
 const messageSchema = new mongoose.Schema({
-    sender : {type : mongoose.Schema.Types.ObjectId, ref : 'User'},
-    receiver : {type : mongoose.Schema.Types.ObjectId, ref : 'User'},
-    content: {type : String, required : true},
-    timeStamp : {type : Date, default : Date.now},
-    groupId : {type : mongoose.Schema.Types.ObjectId, ref : 'Group'}
+    sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: function() { return !this.groupId; } },
+    groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: function() { return !this.receiver; } },
+    content: { type: String, required: true },
+    timeStamp: { type: Date, default: Date.now }
 });
 
 const groupSchema = new mongoose.Schema({
@@ -140,13 +140,21 @@ app.post('/logout', authMiddleware, async (req, res) => {
 //create a group
 app.post('/group', authMiddleware, async (req, res) => {
     try {
-      const { name } = req.body;
-      const group = new Group({ name });
-      await group.save();
-      res.status(201).json(group);  // Send status 201 for created
+        const { name } = req.body;
+        const userId = req.user._id; 
+        
+        const group = new Group({ name, members: [userId] }); 
+        await group.save();
+        
+        
+        const user = await User.findById(userId);
+        user.groups.push(group._id);
+        await user.save();
+        
+        res.status(201).json(group);
     } catch (error) {
-      console.error('Error saving group:', error);  // Add this for debugging
-      res.status(400).json({ message: error.message });
+        console.error('Error saving group:', error);
+        res.status(400).json({ message: error.message });
     }
 });
 
@@ -169,25 +177,14 @@ app.get('/users', authMiddleware, async (req, res) => {
 app.get('/userGroups', authMiddleware, async (req, res) => {
     try {
         const currentUser = await User.findById(req.user._id).populate('groups', 'name');
-        const groupNames = currentUser.groups.map(group => group.name);
+        const groupNames = currentUser.groups.map(group => ({
+            name: group.name,
+            id: group._id
+        }));
         res.json(groupNames);
     } catch (error) {
         console.error('Error retrieving user groups:', error);
         res.status(500).json({ message: 'Server error, please try again later' });
-    }
-});
-//retrieve all groups
-app.get('/groups', authMiddleware, async (req, res) => {
-    try {
-        const query = req.query.query || '';
-        const groups = await Group.find({
-            name : { $regex: query, $options: 'i'}
-        }).select('name _id');
-
-        res.json(groups);
-    } catch (error) {
-        console.error('Error retrieving users:', error);
-        res.status(500).json({ message: 'Server error, please try again later' })
     }
 });
 
@@ -273,9 +270,10 @@ app.post('/search/group', authMiddleware, async(req, res) => {
 
 app.post('/messages', authMiddleware, async(req, res) => {
     try{
-        const {sender, receiver, content} = req.body;
+        const {receiver, content} = req.body;
+        const user = req.user._id;
         const message = new Message({
-            sender, receiver, content, timestamp : new Date()
+            user, receiver, content, timestamp : new Date()
         });
 
         await message.save();
@@ -287,14 +285,15 @@ app.post('/messages', authMiddleware, async(req, res) => {
 });
 
 //get message from two users
-app.get('/messages/:userId1/:userId2', authMiddleware, async(req, res) => {
+app.get('/messages/:userId', authMiddleware, async(req, res) => {
     try {
-        const {userId1, userId2} = req.params;
+        const {userId} = req.params;
+        const user = req.user._id;
 
         const messages = await Message.find({
             $or:[
-                {sender : userId1, receiver : userId2},
-                {sender : userId2, receiver : userId1},
+                {sender : user, receiver : userId},
+                {sender : userId, receiver : user},
             ]
         }).populate('sender receiver', 'username');
 
@@ -308,10 +307,12 @@ app.get('/messages/:userId1/:userId2', authMiddleware, async(req, res) => {
 app.post('/groups/:groupId/messages',authMiddleware, async(req, res) => {
     try {
         const {groupId} = req.params;
-        const {sender, content} = req.body;
+        const {content} = req.body;
+
+        const user = req.user._id;
 
         const message = new Message({
-            sender,
+            user,
             content,
             groupId,
         });
@@ -327,18 +328,17 @@ app.post('/groups/:groupId/messages',authMiddleware, async(req, res) => {
 });
 
 //get messages from a group
-app.get('/groups/:groupId/messages', authMiddleware, async(req, res) => {
+app.get('/groups/:groupId/messages', authMiddleware, async (req, res) => {
     try {
-        const {groupId} = req.params;
+        const { groupId } = req.params;
 
-        const messages = Message.find({ groupId
-        }).populate('sender', 'username');
-
+        const messages = await Message.find({ groupId })
+            .populate('sender', 'username');
         res.json(messages);
     } catch (error) {
-        res.status(400).json({message : error.message});
+        res.status(400).json({ message: error.message });
     }
-})
+});
 
 // app.post('/upload', authMiddleware, upload.single('file'), (req, res) => {
 //     if(!req.file){
