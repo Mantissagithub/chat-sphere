@@ -4,38 +4,47 @@ import GroupIcon from '@mui/icons-material/Group';
 import { motion } from 'framer-motion';
 import axios from 'axios';  // Axios for making API calls
 
-const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {  // Accept darkMode and selection handlers as props
+const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
 
-  // Fetch users and groups when the component mounts
+  // Polling interval in milliseconds (e.g., 5000ms = 5 seconds)
+  const POLLING_INTERVAL = 5000;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
         
         // Fetch users
-        const resp = await axios.get(`http://localhost:3000/users?`, {
+        const usersResponse = await axios.get(`http://localhost:3000/userFriends`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
-        setUsers(resp.data);
+        setUsers(usersResponse.data);
 
         // Fetch groups
-        const resp1 = await axios.get(`http://localhost:3000/userGroups`, {
+        const groupsResponse = await axios.get(`http://localhost:3000/userGroups`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
-        setGroups(resp1.data);
+        setGroups(groupsResponse.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
 
+    // Initial fetch
     fetchData();
-  }, []);  // Run on component mount
+
+    // Set up the polling interval
+    const intervalId = setInterval(fetchData, POLLING_INTERVAL);
+
+    // Cleanup: clear interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []);  // Run once when the component mounts
 
   return (
     <div>
@@ -45,10 +54,10 @@ const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {  // A
           <h2 className={`text-lg ${darkMode ? 'text-white' : 'text-black'}`}>Users</h2>
           {users.map(user => (
             <motion.div 
-              key={user._id}  // Use user's _id as a unique key
+              key={user._id}
               className={`flex items-center p-4 rounded-lg cursor-pointer transition-all duration-300 ease-in-out shadow-md mb-2 
               ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}
-              onClick={() => onSelectUser(user)} // Call handler on click
+              onClick={() => onSelectUser(user)}
               whileHover={{ scale: 1.05, boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.3)" }}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: 20 }}
@@ -60,7 +69,7 @@ const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {  // A
               </div>
               <div className="ml-4 flex flex-col justify-center">
                 <p className={`text-base font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>{user.fullName}</p>
-                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Last message snippet...</p> {/* Replace with actual message data */}
+                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Last message snippet...</p>
               </div>
             </motion.div>
           ))}
@@ -73,10 +82,10 @@ const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {  // A
           <h2 className={`text-lg ${darkMode ? 'text-white' : 'text-black'}`}>Groups</h2>
           {groups.map(group => (
             <motion.div 
-              key={group._id}  // Use group's _id as a unique key
+              key={group._id}
               className={`flex items-center p-4 rounded-lg cursor-pointer transition-all duration-300 ease-in-out shadow-md mb-2 
               ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}
-              onClick={() => onSelectGroup(group)} // Call handler on click
+              onClick={() => onSelectGroup(group)}
               whileHover={{ scale: 1.05, boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.3)" }}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, y: 20 }}
@@ -87,8 +96,8 @@ const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {  // A
                 <GroupIcon className={`${darkMode ? 'text-blue-500' : 'text-blue-600'} text-3xl`} />
               </div>
               <div className="ml-4 flex flex-col justify-center">
-                <p className={`text-base font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>{group.name}</p> {/* Assuming group has a name property */}
-                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Group chat...</p> {/* Replace with actual group info */}
+                <p className={`text-base font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>{group.name}</p>
+                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Group chat...</p>
               </div>
             </motion.div>
           ))}

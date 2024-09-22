@@ -35,8 +35,8 @@ const userSchema = new mongoose.Schema({
 
 const messageSchema = new mongoose.Schema({
     sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: function() { return !this.groupId; } },
-    groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: function() { return !this.receiver; } },
+    receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group'},
     content: { type: String, required: true },
     timeStamp: { type: Date, default: Date.now }
 });
@@ -137,6 +137,25 @@ app.post('/logout', authMiddleware, async (req, res) => {
     }
 });
 
+//route to show the user's profile
+app.get('/me', authMiddleware, async (req, res) => {
+    const userId = req.user._id; 
+    const user = await User.findById(userId);
+    res.json({
+        id : user._id,
+        name : user.fullName,
+        email : user.email,
+        friends : user.friends,
+        groups : user.groups,
+    })
+});
+
+app.get('/userName', authMiddleware, async (req, res) => {
+    const {userId} = req.body;
+    const user = await User.findById(userId);
+    res.json(user.fullName);
+})
+
 //create a group
 app.post('/group', authMiddleware, async (req, res) => {
     try {
@@ -169,6 +188,35 @@ app.get('/users', authMiddleware, async (req, res) => {
         res.json(users);
     } catch (error) {
         console.error('Error retrieving users:', error);
+        res.status(500).json({ message: 'Server error, please try again later' });
+    }
+});
+
+app.get('/groups', authMiddleware, async (req, res) => {
+    try {
+        const query = req.query.query || '';
+        const groups = await Group.find({
+            name : { $regex : query, $options : 'i'}
+        }).select('name _id');
+
+        res.json(groups)
+    } catch (error) {
+        console.error('Error retrieving users:', error);
+        res.status(500).json({ message: 'Server error, please try again later' });
+    }
+});
+
+//retrieve all friends of a user
+app.get('/userFriends', authMiddleware, async (req, res) => {
+    try {
+        const currentUser = await User.findById(req.user._id).populate('friends', 'fullName');
+        const friendNames = currentUser.friends.map(friend => ({
+            fullName : friend.fullName,
+            _id : friend._id,
+        }));
+        res.json(friendNames);
+    } catch (error) {
+        console.error('Error retrieving user groups:', error);
         res.status(500).json({ message: 'Server error, please try again later' });
     }
 });
@@ -270,10 +318,10 @@ app.post('/search/group', authMiddleware, async(req, res) => {
 
 app.post('/messages', authMiddleware, async(req, res) => {
     try{
-        const {receiver, content} = req.body;
+        const {receiver, content, timeStamp} = req.body;
         const user = req.user._id;
         const message = new Message({
-            user, receiver, content, timestamp : new Date()
+            sender : user, receiver : receiver, content : content, timestamp : timeStamp
         });
 
         await message.save();
@@ -304,26 +352,29 @@ app.get('/messages/:userId', authMiddleware, async(req, res) => {
 });
 
 //send message to a group
-app.post('/groups/:groupId/messages',authMiddleware, async(req, res) => {
+app.post('/groups/messages', authMiddleware, async(req, res) => {
     try {
-        const {groupId} = req.params;
-        const {content} = req.body;
-
-        const user = req.user._id;
+        const {groupId, content, timeStamp} = req.body;
+        const userId = req.user._id;
 
         const message = new Message({
-            user,
-            content,
-            groupId,
+            sender: userId,
+            content: content,
+            groupId: groupId,
+            timestamp: timeStamp,
         });
 
         await message.save();
 
-        io.to(groupId).emit('groupMessage', message);
+        // Populate the sender field with the user's username
+        const populatedMessage = await Message.findById(message._id)
+            .populate('sender', 'username');
 
-        res.status(201).json({message});
+        io.to(groupId).emit('groupMessage', populatedMessage);
+
+        res.status(201).json(populatedMessage);
     } catch (error) {
-        res.status(400).json({message : error.message});
+        res.status(400).json({message: error.message});
     }
 });
 
@@ -365,6 +416,11 @@ io.on('connection', (socket) => {
         io.emit('userStatusUpdate', user);
 
         console.log(`User ${user.fullName} joined with ID ${user.socketId}`);
+    });
+
+    socket.on('joinGroup', (groupId) => {
+        socket.join(groupId);
+        console.log(`User joined group ${groupId}`);
     });
 
     socket.on('offer', (data) => {

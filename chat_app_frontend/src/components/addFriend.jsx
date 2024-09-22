@@ -9,8 +9,11 @@ import { gsap } from 'gsap';
 const AddFriend = ({ onClose }) => {
     const [userName, setUserName] = useState('');
     const [suggestions, setSuggestions] = useState([]);
+    const [success, setSuccess] = useState(false); // New state to manage success
 
+    // Debounced function to fetch user suggestions
     const fetchSuggestions = _.debounce(async (query) => {
+        console.log('Fetching suggestions for:', query); // Log the query
         try {
             const token = localStorage.getItem('token');
             const resp = await axios.get(`http://localhost:3000/users?query=${query}`, {
@@ -18,46 +21,71 @@ const AddFriend = ({ onClose }) => {
                     'Authorization': `Bearer ${token}`,
                 },
             });
+            console.log('Response from /users:', resp.data); // Log response data
             setSuggestions(resp.data);
+            console.log('Updated suggestions:', resp.data); // Check updated suggestions
         } catch (err) {
-            console.error(err);
+            console.error('Error fetching suggestions:', err);
         }
     }, 300);
 
+    // Handle input change
     const handleUserNameChange = (e) => {
         const value = e.target.value;
         setUserName(value);
+        setSuccess(false); // Reset success state when typing
 
         if (value) {
-            fetchSuggestions(value);
+            fetchSuggestions(value); 
         } else {
             setSuggestions([]);
         }
     };
 
+    // Handle suggestion click
     const handleSuggestionClick = (name) => {
         setUserName(name);  // Set clicked suggestion in the search box
-        setSuggestions([]);  // Clear suggestions
+        setSuccess(true);   // Set success state to true
+        // Do not clear suggestions immediately; they will be cleared on adding friend or if another input is entered
     };
 
+    // Add friend functionality
     const addFriend = async () => {
         try {
             const token = localStorage.getItem('token');
-            const selectedUser = suggestions.find(user => user.fullName === userName);  // Find the selected user
-            if (!selectedUser) return;  // If no user is selected, don't proceed
+            console.log('Current userName:', userName); // Log current username
+            console.log('Suggestions array:', suggestions); // Log suggestions before searching
 
-            await axios.post('http://localhost:3000/search/user', { userId: selectedUser._id }, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-            gsap.to(".friend-added-message", { y: -30, opacity: 1, duration: 1 });
-            alert(`Added ${userName} as a friend!`);
-            setUserName('');
-            setSuggestions([]);
-            onClose();  // Close the modal
+            // Find the selected user based on input
+            const selectedUser = suggestions.find(user => 
+                user.fullName.trim().toLowerCase() === userName.trim().toLowerCase()
+            );
+
+            console.log('Selected user:', selectedUser); // Debug log for selected user
+            
+            if (!selectedUser) {
+                console.log('Selected user not found in suggestions:', suggestions); // Debug log
+                return alert('User not found');
+            }
+
+            // Send request to add friend
+            const response = await axios.post('http://localhost:3000/search/user', 
+                { userId: selectedUser._id },
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+
+            if (response.status === 200) {
+                gsap.to(".friend-added-message", { y: -30, opacity: 1, duration: 1 });
+                alert(`Added ${userName} as a friend!`);
+                setUserName('');
+                setSuggestions([]);
+                onClose();  // Close the modal
+            } else {
+                alert('Failed to add friend');
+            }
         } catch (error) {
-            console.error(error);
+            console.error('Error adding friend:', error);
+            alert('Error occurred while adding friend. Please try again.');
         }
     };
 
@@ -98,7 +126,7 @@ const AddFriend = ({ onClose }) => {
             </motion.div>
 
             {/* Suggestions Dropdown */}
-            {suggestions.length > 0 && (
+            {suggestions.length > 0 && !success && ( // Show suggestions only if not in success state
                 <motion.ul
                     className="absolute z-10 bg-white dark:bg-gray-800 shadow-lg rounded-lg mt-2 w-full max-h-48 overflow-y-auto transition-all"
                     initial={{ opacity: 0 }}

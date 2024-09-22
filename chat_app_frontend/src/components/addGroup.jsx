@@ -9,7 +9,9 @@ import { gsap } from 'gsap';
 const AddGroup = ({ onClose }) => {
     const [groupName, setGroupName] = useState('');
     const [suggestions, setSuggestions] = useState([]);
+    const [success, setSuccess] = useState(false); // New state to manage success
 
+    // Debounced function to fetch group suggestions
     const fetchSuggestions = _.debounce(async (query) => {
         try {
             const token = localStorage.getItem('token');
@@ -24,9 +26,11 @@ const AddGroup = ({ onClose }) => {
         }
     }, 300);
 
+    // Handle input change
     const handleGroupNameChange = (e) => {
         const value = e.target.value;
         setGroupName(value);
+        setSuccess(false); // Reset success state when typing
 
         if (value) {
             fetchSuggestions(value); 
@@ -35,22 +39,25 @@ const AddGroup = ({ onClose }) => {
         }
     };
 
+    // Handle suggestion click
     const handleSuggestionClick = (name) => {
-        setGroupName(name);  
-        setSuggestions([]); 
+        setGroupName(name);  // Set clicked suggestion in the search box
+        setSuccess(true);    // Set success state to true
+        // Do not clear suggestions immediately; they will be cleared on adding group or if another input is entered
     };
 
+    // Add to group functionality
     const addToGroup = async () => {
         try {
             const token = localStorage.getItem('token');
-            const selectedGroup = suggestions.find(group => group.name === groupName);  
-            if (!selectedGroup) return;  
+            const selectedGroup = suggestions.find(group => group.name.trim().toLowerCase() === groupName.trim().toLowerCase());  
+            
+            if (!selectedGroup) return alert('Group not found');  // Alert if no group found
 
-            await axios.post('http://localhost:3000/search/group', { groupName: selectedGroup.name }, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+            await axios.post('http://localhost:3000/search/group', 
+                { groupName: selectedGroup.name }, 
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
             
             gsap.to(".group-added-message", { y: -30, opacity: 1, duration: 1 });
             alert(`Added to group: ${groupName}`);
@@ -99,7 +106,7 @@ const AddGroup = ({ onClose }) => {
             </motion.div>
 
             {/* Suggestions Dropdown */}
-            {suggestions.length > 0 && (
+            {suggestions.length > 0 && !success && ( // Show suggestions only if not in success state
                 <motion.ul
                     className="absolute z-10 bg-white dark:bg-gray-800 shadow-lg rounded-lg mt-2 w-full max-h-48 overflow-y-auto transition-all"
                     initial={{ opacity: 0 }}

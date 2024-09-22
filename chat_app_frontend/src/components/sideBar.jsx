@@ -15,6 +15,7 @@ import { IconButton, TextField, InputAdornment, Modal, Box } from "@mui/material
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
+import ProfileModal from "./userProfilePopup";
 
 const SideBar = () => {
   const [openCreateGroup, setOpenCreateGroup] = useState(false);
