@@ -17,12 +17,15 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
   const messageContainerRef = useRef(null);
 
   // Function to generate random color
-  const generateRandomColor = () => {
+  const generateRandomColor = (prevColor) => {
     const letters = "0123456789ABCDEF";
     let color = "#";
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
+    do {
+      color = "#";
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+    } while (color === prevColor); // Ensure new color is different from the last one
     return color;
   };
 
@@ -59,15 +62,6 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
           });
           setMessages(response.data);
 
-          // Assign colors to new users
-          response.data.forEach((msg) => {
-            if (!userColors[msg.sender] && msg.sender !== currentUser?.id) {
-              setUserColors((prevColors) => ({
-                ...prevColors,
-                [msg.sender]: generateRandomColor(),
-              }));
-            }
-          });
         } catch (error) {
           console.error("Error fetching messages", error);
         }
@@ -88,14 +82,6 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
   useEffect(() => {
     const handleIncomingMessage = (message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
-
-      // Assign color to the new sender if not already assigned
-      if (!userColors[message.sender] && message.sender !== currentUser?.id) {
-        setUserColors((prevColors) => ({
-          ...prevColors,
-          [message.sender]: generateRandomColor(),
-        }));
-      }
     };
 
     socket.on("message", handleIncomingMessage); // Listen for direct messages
@@ -105,7 +91,7 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
       socket.off("message", handleIncomingMessage);
       socket.off("groupMessage", handleIncomingMessage);
     };
-  }, [userColors]);
+  }, []);
 
   // Scroll to the latest message when new messages are added
   useEffect(() => {
@@ -113,6 +99,22 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
       messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Assign unique colors to users after messages are fetched
+  useEffect(() => {
+    if (messages.length > 0) {
+      const updatedColors = { ...userColors };
+
+      messages.forEach((msg, index) => {
+        if (!updatedColors[msg.sender]) {
+          const prevColor = index > 0 ? updatedColors[messages[index - 1].sender] : "";
+          updatedColors[msg.sender] = generateRandomColor(prevColor);
+        }
+      });
+
+      setUserColors(updatedColors);
+    }
+  }, [messages]); // This will run only when `messages` change
 
   // Send message
   const sendMessage = async () => {
@@ -174,20 +176,17 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
           messages.map((msg, index) => {
             const isFromCurrentUser = msg.sender === currentUser?.id;
             const userColor = isFromCurrentUser
-              ? "bg-yellow-500 text-black"
-              : `bg-[${userColors[msg.sender] || "#ccc"}] text-white`;
+              ? "bg-yellow-500 text-black" // Current user: Yellow
+              : `bg-[${userColors[msg.sender] || "#ccc"}] text-white`; // Other users: Random color
 
             return (
               <motion.div
                 key={index}
                 className={`flex ${isFromCurrentUser ? "justify-end" : "justify-start"} w-full`}
               >
-                <div
-                  className={`messageBubble max-w-xs p-4 rounded-2xl shadow-md ${userColor} space-y-1`}
-                >
-                  {selectedGroup && !isFromCurrentUser && (
-                    <p className="text-xs font-semibold">{msg.senderName}</p>
-                  )}
+                <div className={`messageBubble max-w-xs p-4 rounded-2xl shadow-md ${userColor} space-y-1`}>
+                  {/* Always display sender's name */}
+                  <p className="text-xs font-semibold">{msg.senderName}</p>
                   <p className="text-sm">{msg.content}</p>
                   <p className="text-xs text-gray-500">
                     {new Date(msg.timeStamp).toLocaleTimeString()}

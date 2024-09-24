@@ -9,7 +9,7 @@ const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {
   const [groups, setGroups] = useState([]);
 
   // Polling interval in milliseconds (e.g., 5000ms = 5 seconds)
-  const POLLING_INTERVAL = 5000;
+  const POLLING_INTERVAL = 2000;
 
   useEffect(() => {
     const fetchData = async () => {

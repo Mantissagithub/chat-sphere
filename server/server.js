@@ -35,7 +35,9 @@ const userSchema = new mongoose.Schema({
 
 const messageSchema = new mongoose.Schema({
     sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    senderName : {type : String, required : true},
     receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    receiverName : {type : String}, 
     groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group'},
     content: { type: String, required: true },
     timeStamp: { type: Date, default: Date.now }
@@ -316,19 +318,30 @@ app.post('/search/group', authMiddleware, async(req, res) => {
 //     }
 // });
 
-app.post('/messages', authMiddleware, async(req, res) => {
-    try{
-        const {receiver, content, timeStamp} = req.body;
-        const user = req.user._id;
+app.post('/messages', authMiddleware, async (req, res) => {
+    try {
+        const { receiver, content, timeStamp } = req.body;
+        const sender = await User.findById(req.user._id);  // Fetch sender details
+        const receiverUser = await User.findById(receiver);
+        
+        if (!receiverUser) {
+            return res.status(404).json({ message: "Receiver not found" });
+        }
+        
         const message = new Message({
-            sender : user, receiver : receiver, content : content, timestamp : timeStamp
+            sender: sender._id,
+            senderName: sender.fullName,
+            receiver: receiverUser._id,
+            receiverName: receiverUser.fullName,
+            content,
+            timeStamp,
         });
 
         await message.save();
         io.to(receiver.toString()).emit('message', message);
         res.status(201).json(message);
-    }catch(error){
-        res.status(400).json({message : error.message});
+    } catch (error) {
+        res.status(400).json({ message: error.message });
     }
 });
 
@@ -352,31 +365,37 @@ app.get('/messages/:userId', authMiddleware, async(req, res) => {
 });
 
 //send message to a group
-app.post('/groups/messages', authMiddleware, async(req, res) => {
+app.post('/groups/messages', authMiddleware, async (req, res) => {
     try {
-        const {groupId, content, timeStamp} = req.body;
-        const userId = req.user._id;
-
-        const message = new Message({
-            sender: userId,
-            content: content,
-            groupId: groupId,
-            timestamp: timeStamp,
-        });
-
-        await message.save();
-
-        // Populate the sender field with the user's username
-        const populatedMessage = await Message.findById(message._id)
-            .populate('sender', 'username');
-
-        io.to(groupId).emit('groupMessage', populatedMessage);
-
-        res.status(201).json(populatedMessage);
+      const { groupId, content, timeStamp } = req.body;
+  
+      // Fetch sender info from the authenticated user
+      const sender = await User.findById(req.user._id);  
+  
+      // Create new message
+      const message = new Message({
+        sender: sender._id, 
+        senderName: sender.fullName, 
+        content: content,
+        groupId: groupId,
+        timestamp: timeStamp,
+      });
+  
+      await message.save();
+  
+      // Populate sender field with the user's username
+      const populatedMessage = await Message.findById(message._id)
+        .populate('sender', 'username');
+  
+      // Emit the message to the group via WebSocket
+      io.to(groupId).emit('groupMessage', populatedMessage);
+  
+      res.status(201).json(populatedMessage);
     } catch (error) {
-        res.status(400).json({message: error.message});
+      res.status(400).json({ message: error.message });
     }
-});
+  });
+  
 
 //get messages from a group
 app.get('/groups/:groupId/messages', authMiddleware, async (req, res) => {
