@@ -7,21 +7,21 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import SearchIcon from '@mui/icons-material/Search';
 import LogoutIcon from '@mui/icons-material/Logout';
-// import ConversationsItem from "./conversationsItem";
 import CreateGroups from "./createGroups";
 import AddFriend from "./addFriend";
-import AddGroup from "./addGroup"; // Import the AddGroup component
+import AddGroup from "./addGroup"; 
 import { IconButton, TextField, InputAdornment, Modal, Box } from "@mui/material";
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
-import ProfileModal from "./userProfilePopup";
+import ProfileModal from "./userProfilePopup"; // Import ProfileModal
 
 const SideBar = () => {
   const [openCreateGroup, setOpenCreateGroup] = useState(false);
   const [openAddFriend, setOpenAddFriend] = useState(false);
-  const [openAddGroup, setOpenAddGroup] = useState(false); // New state for AddGroup modal
+  const [openAddGroup, setOpenAddGroup] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [openProfileModal, setOpenProfileModal] = useState(false); // New state for ProfileModal
 
   const handleCreateGroupOpen = () => setOpenCreateGroup(true);
   const handleCreateGroupClose = () => setOpenCreateGroup(false);
@@ -29,8 +29,8 @@ const SideBar = () => {
   const handleAddFriendOpen = () => setOpenAddFriend(true);
   const handleAddFriendClose = () => setOpenAddFriend(false);
 
-  const handleAddGroupOpen = () => setOpenAddGroup(true); // Open AddGroup modal
-  const handleAddGroupClose = () => setOpenAddGroup(false); // Close AddGroup modal
+  const handleAddGroupOpen = () => setOpenAddGroup(true);
+  const handleAddGroupClose = () => setOpenAddGroup(false);
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
   const navigate = useNavigate();
@@ -38,7 +38,6 @@ const SideBar = () => {
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem('token'); 
-
       const resp = await axios.post('http://localhost:3000/logout', {}, {  
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -57,6 +56,10 @@ const SideBar = () => {
     }
   };
 
+  // Open Profile Modal
+  const handleProfileModalOpen = () => setOpenProfileModal(true);
+  const handleProfileModalClose = () => setOpenProfileModal(false);
+
   return (
     <motion.div 
       className={`min-h-full flex flex-col w-full space-y-4 bg-transparent`}
@@ -69,14 +72,14 @@ const SideBar = () => {
         className={`flex justify-between items-center p-4 rounded-lg shadow-lg transition-all duration-300 ${darkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'}`}
         whileHover={{ scale: 1.02 }}
       >
-        <IconButton className="hover:bg-gray-600 transition-all">
+        <IconButton className="hover:bg-gray-600 transition-all" onClick={handleProfileModalOpen}>
           <AccountCircleIcon fontSize="large" className={`${darkMode ? 'text-white' : 'text-black'}`} />
         </IconButton>
         <div className="flex space-x-4">
           <IconButton className="hover:bg-gray-600 transition-all" onClick={handleAddFriendOpen}>
             <PersonAddIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
           </IconButton>
-          <IconButton className="hover:bg-gray-600 transition-all" onClick={handleAddGroupOpen}> {/* Button for AddGroup */}
+          <IconButton className="hover:bg-gray-600 transition-all" onClick={handleAddGroupOpen}> 
             <GroupAddIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
           </IconButton>
           <IconButton className="hover:bg-gray-600 transition-all" onClick={handleCreateGroupOpen}>
@@ -118,18 +121,12 @@ const SideBar = () => {
         />
       </motion.div>
 
-      {/* Conversations List
-      <motion.div 
-        className={`flex-1 overflow-y-auto transition-all duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'} p-4 rounded-lg shadow-lg`}
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeInOut" }}
-      >
-        
-        <ConversationsItem darkMode={darkMode}/>
-      </motion.div> */}
+      {/* Profile Modal */}
+      {openProfileModal && (
+        <ProfileModal darkMode={darkMode} onClose={handleProfileModalClose} />
+      )}
 
-      {/* Modal for Adding Friend */}
+      {/* AddFriend Modal */}
       <Modal
         open={openAddFriend}
         onClose={handleAddFriendClose}
@@ -156,15 +153,14 @@ const SideBar = () => {
           <motion.div 
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <AddFriend onClose={handleAddFriendClose} />
+            <AddFriend darkMode={darkMode} />
           </motion.div>
         </Box>
       </Modal>
-
-      {/* Modal for Adding Group */}
+      
+      {/* AddGroup Modal */}
       <Modal
         open={openAddGroup}
         onClose={handleAddGroupClose}
@@ -191,45 +187,9 @@ const SideBar = () => {
           <motion.div 
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <AddGroup onClose={handleAddGroupClose} />
-          </motion.div>
-        </Box>
-      </Modal>
-
-      {/* Modal for Creating Group */}
-      <Modal
-        open={openCreateGroup}
-        onClose={handleCreateGroupClose}
-        aria-labelledby="create-group-modal"
-        aria-describedby="modal-to-create-a-new-group"
-        closeAfterTransition
-        BackdropProps={{
-          timeout: 500,
-        }}
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: darkMode ? 'grey.900' : 'white',
-            boxShadow: 24,
-            p: 4,
-            width: 400,
-            borderRadius: 2,
-          }}
-        >
-          <motion.div 
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-          >
-            <CreateGroups onClose={handleCreateGroupClose} />
+            <AddGroup darkMode={darkMode} />
           </motion.div>
         </Box>
       </Modal>

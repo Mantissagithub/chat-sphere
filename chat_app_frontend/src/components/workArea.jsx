@@ -116,6 +116,69 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
     }
   }, [messages]); // This will run only when `messages` change
 
+  // const handleDeleteMessages = async () => {
+  //   try {
+  //     const userId1 = currentUser._id;
+  //     const userId2 = selectedUser._id; // Assuming the selected user is your chat partner
+  
+  //     await axios.delete('http://localhost:3000/messages/delete', {
+  //       data: { userId1, userId2 },
+  //       headers: {
+  //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //       },
+  //     });
+  
+  //     // Clear the messages in the UI after deletion
+  //     setMessages([]);
+  //   } catch (error) {
+  //     console.error("Error deleting messages:", error);
+  //   }
+  // };  
+
+  const handleDeleteMessages = async () => {
+    try {
+      const userId = selectedUser._id; // Assuming the selected user is your chat partner
+  
+      await axios.delete('http://localhost:3000/messages/delete', {
+        data: { userId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+  
+      // Clear the messages in the UI after deletion
+      setMessages([]);
+    } catch (error) {
+      console.error("Error deleting messages:", error);
+    }
+  };  
+
+  const handleDeleteMessageGroup = async () => {
+    try {
+      const groupId = selectedGroup.id; // Assuming the selected user is your chat partner
+  
+      await axios.delete('http://localhost:3000/groupmessages/delete', {
+        data: { groupId },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+  
+      // Clear the messages in the UI after deletion
+      setMessages([]);
+    } catch (error) {
+      console.error("Error deleting messages:", error);
+    }
+  }
+
+  const handleDelete = () => {
+    if (selectedGroup) {
+      handleDeleteMessageGroup();
+    } else if (selectedUser) {
+      handleDeleteMessages();
+    }
+  };
+
   // Send message
   const sendMessage = async () => {
     try {
@@ -162,7 +225,7 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
             ? selectedGroup?.name || "Select a conversation"
             : selectedUser?.fullName || "Select a conversation"}
         </motion.h2>
-        <IconButton className="text-gray-400 hover:text-red-500 transition-colors">
+        <IconButton className="text-gray-400 hover:text-red-500 transition-colors" onClick={handleDelete}>
           <DeleteOutlineIcon />
         </IconButton>
       </motion.div>
