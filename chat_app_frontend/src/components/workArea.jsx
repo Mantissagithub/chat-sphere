@@ -1,20 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
-import { TextField, IconButton } from "@mui/material";
+import { TextField, IconButton, Modal, Box } from "@mui/material"; // Added Modal and Box imports
 import SendIcon from "@mui/icons-material/Send";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { motion } from "framer-motion";
 import axios from "axios";
 import io from "socket.io-client";
+import ReceiverModal from "./receiverUserFilePopup"; // Import the ReceiverModal component
 
 const socket = io("http://localhost:3000");
 
-const WorkArea = ({ selectedUser, selectedGroup }) => {
+const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [userColors, setUserColors] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
   const messageContainerRef = useRef(null);
+
+  // Function to toggle modal visibility
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
 
   // Function to generate random color
   const generateRandomColor = (prevColor) => {
@@ -61,7 +68,6 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
             },
           });
           setMessages(response.data);
-
         } catch (error) {
           console.error("Error fetching messages", error);
         }
@@ -116,60 +122,41 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
     }
   }, [messages]); // This will run only when `messages` change
 
-  // const handleDeleteMessages = async () => {
-  //   try {
-  //     const userId1 = currentUser._id;
-  //     const userId2 = selectedUser._id; // Assuming the selected user is your chat partner
-  
-  //     await axios.delete('http://localhost:3000/messages/delete', {
-  //       data: { userId1, userId2 },
-  //       headers: {
-  //         Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //       },
-  //     });
-  
-  //     // Clear the messages in the UI after deletion
-  //     setMessages([]);
-  //   } catch (error) {
-  //     console.error("Error deleting messages:", error);
-  //   }
-  // };  
-
   const handleDeleteMessages = async () => {
     try {
-      const userId = selectedUser._id; // Assuming the selected user is your chat partner
-  
-      await axios.delete('http://localhost:3000/messages/delete', {
+      const userId = selectedUser?._id; // Added null check for selectedUser
+
+      await axios.delete("http://localhost:3000/messages/delete", {
         data: { userId },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-  
+
       // Clear the messages in the UI after deletion
       setMessages([]);
     } catch (error) {
       console.error("Error deleting messages:", error);
     }
-  };  
+  };
 
   const handleDeleteMessageGroup = async () => {
     try {
-      const groupId = selectedGroup.id; // Assuming the selected user is your chat partner
-  
-      await axios.delete('http://localhost:3000/groupmessages/delete', {
+      const groupId = selectedGroup?.id; // Added null check for selectedGroup
+
+      await axios.delete("http://localhost:3000/groupmessages/delete", {
         data: { groupId },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-  
+
       // Clear the messages in the UI after deletion
       setMessages([]);
     } catch (error) {
       console.error("Error deleting messages:", error);
     }
-  }
+  };
 
   const handleDelete = () => {
     if (selectedGroup) {
@@ -188,7 +175,7 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
 
       const payload = selectedGroup
         ? { groupId: selectedGroup.id, content: messageText, timeStamp: new Date() }
-        : { receiver: selectedUser._id, content: messageText, timeStamp: new Date() };
+        : { receiver: selectedUser?._id, content: messageText, timeStamp: new Date() }; // Added null check for selectedUser
 
       const response = await axios.post(url, payload, {
         headers: {
@@ -217,7 +204,7 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
     <motion.div className="flex flex-col w-full h-full bg-transparent from-gray-800 to-gray-600 p-6 space-y-4 text-white">
       {/* Chat Header */}
       <motion.div className="chatHeader flex items-center justify-between p-4 bg-gray-700 shadow-md rounded-lg border-b border-gray-600">
-        <IconButton className="text-yellow-500">
+        <IconButton className="text-yellow-500" onClick={toggleModal}>
           <AccountCircleIcon fontSize="large" />
         </IconButton>
         <motion.h2 className="text-2xl font-bold tracking-wide">
@@ -240,14 +227,17 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
             const isFromCurrentUser = msg.sender === currentUser?.id;
             const userColor = isFromCurrentUser
               ? "bg-yellow-500 text-black" // Current user: Yellow
-              : `bg-[${userColors[msg.sender] || "#ccc"}] text-white`; // Other users: Random color
+              : ""; // Other users: Will use inline style for dynamic color
 
             return (
               <motion.div
                 key={index}
                 className={`flex ${isFromCurrentUser ? "justify-end" : "justify-start"} w-full`}
               >
-                <div className={`messageBubble max-w-xs p-4 rounded-2xl shadow-md ${userColor} space-y-1`}>
+                <div
+                  className={`messageBubble max-w-xs p-4 rounded-2xl shadow-md text-white`}
+                  style={{ backgroundColor: userColors[msg.sender] || "#ccc" }} // Dynamic inline color
+                >
                   {/* Always display sender's name */}
                   <p className="text-xs font-semibold">{msg.senderName}</p>
                   <p className="text-sm">{msg.content}</p>
@@ -259,33 +249,70 @@ const WorkArea = ({ selectedUser, selectedGroup }) => {
             );
           })
         ) : (
-          <motion.div className="flex justify-center items-center w-full h-full">
-            <p>No conversation selected</p>
-          </motion.div>
+          <motion.p className="text-gray-400 text-center">
+            Start a conversation!
+          </motion.p>
         )}
       </motion.div>
 
-      {/* Chat Input Area */}
-      <motion.div className="chatInputArea flex items-center bg-gray-800 shadow-lg p-3 rounded-lg border-t border-gray-600">
+      {/* Message Input */}
+      <motion.div className="messageInput flex items-center p-4 space-x-4 bg-gray-700 rounded-lg shadow-md">
         <TextField
+          className="flex-1 bg-gray-800 text-white rounded-lg shadow-inner"
+          placeholder="Type your message"
+          variant="outlined"
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
-          placeholder="Type a message..."
-          variant="outlined"
-          fullWidth
-          size="small"
-          className="mr-3"
+          onKeyPress={(e) => e.key === "Enter" && sendMessage()} // Send on Enter
           InputProps={{
-            className: "bg-white text-black rounded-full px-4 py-2",
+            style: {
+              color: "white", // Text color
+            },
           }}
         />
         <IconButton
-          className="bg-yellow-500 text-white hover:bg-yellow-600 transition-all rounded-full p-3 shadow-md"
+          className="bg-yellow-500 hover:bg-yellow-600 text-black rounded-full"
           onClick={sendMessage}
         >
-          <SendIcon fontSize="medium" />
+          <SendIcon />
         </IconButton>
       </motion.div>
+
+      {/* Receiver Modal */}
+      {selectedUser && isModalOpen && (
+        <Modal
+          open={true}
+          onClose={toggleModal}
+          aria-labelledby="receiver-modal"
+          aria-describedby="modal-to-view-receiver-details"
+          closeAfterTransition
+          BackdropProps={{
+            timeout: 500,
+          }}
+        >
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              bgcolor: darkMode ? "grey.900" : "white",
+              boxShadow: 24,
+              p: 4,
+              width: 400,
+              borderRadius: 2,
+            }}
+          >
+            <motion.div
+              initial={{ y: -100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            >
+              <ReceiverModal userId={selectedUser._id} darkMode={darkMode} />
+            </motion.div>
+          </Box>
+        </Modal>
+      )}
     </motion.div>
   );
 };

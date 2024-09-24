@@ -153,7 +153,7 @@ app.get('/me', authMiddleware, async (req, res) => {
 });
 
 app.get('/userName', authMiddleware, async (req, res) => {
-    const {userId} = req.body;
+    const {userId} = req.query;
     const user = await User.findById(userId);
     res.json({
         name : user.fullName,

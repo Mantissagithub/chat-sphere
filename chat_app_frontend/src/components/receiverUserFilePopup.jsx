@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from'react';
 import { Modal } from '@mui/material';
 import Box from '@mui/material/Box';
 import { motion } from 'framer-motion';
@@ -11,33 +11,30 @@ const avatars = [
   'https://img.freepik.com/premium-photo/lego-figure-man-with-glasses-yellow-jacket_1116403-2103.jpg?size=626&ext=jpg&ga=GA1.1.829029841.1727089904&semt=ais_hybrid'
 ];
 
-const ReceiverModal = ({ selectedUserid, darkMode, onClose }) => {
+const ReceiverModal = ({ userId, darkMode }) => {
   const [userData, setUserData] = useState(null);
   const [avatar, setAvatar] = useState(null);
 
-  // Fetch user data based on selectedUserid
+  // Fetch user data based on userId
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3000/userName', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          params: {
-            userId: selectedUserid,  // Pass the selectedUserid to the backend
-          },
-        });
-        setUserData(response.data);
+        const response = await axios.get(`http://localhost:3000/userName?userId=${userId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            }
+          });
+          setUserData(response.data);
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
 
-    if (selectedUserid) {
+    if (userId) {
       fetchUserData();
     }
-  }, [selectedUserid]);
+  }, [userId]);
 
   // Randomly select an avatar on component mount
   useEffect(() => {
@@ -52,59 +49,36 @@ const ReceiverModal = ({ selectedUserid, darkMode, onClose }) => {
     }
   }, [userData]);
 
-  if (!userData || !avatar) {
+  // If no userData or avatar is available, return null
+  if (!userData ||!avatar) {
     return null;
   }
 
   return (
-    <Modal
-      open={true}
-      onClose={onClose}
-      aria-labelledby="receiver-modal"
-      aria-describedby="modal-to-display-selected-user-profile"
-      closeAfterTransition
-      BackdropProps={{
-        timeout: 500,
-      }}
+    <motion.div
+      className="flex items-center space-x-4"
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          bgcolor: darkMode ? 'grey.900' : 'white',
-          boxShadow: 24,
-          p: 4,
-          width: 400,
-          borderRadius: 2,
-        }}
-      >
-        <motion.div
-          className="flex items-center space-x-4"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-        >
-          {/* Avatar Section */}
-          <motion.div className="avatar">
-            <img
-              src={avatar}
-              alt="Avatar"
-              className="rounded-full w-20 h-20 object-cover"
-              style={{ borderRadius: '50%' }}
-            />
-          </motion.div>
+      {/* Avatar Section */}
+      <motion.div className="avatar">
+        <img
+          src={avatar}
+          alt="Avatar"
+          className="rounded-full w-20 h-20 object-cover"
+          style={{ borderRadius: '50%' }}
+        />
+      </motion.div>
 
-          {/* User Details Section */}
-          <div className="text-left">
-            <h2 className="text-xl font-semibold">{userData.name}</h2>
-            <p className="text-gray-600">Email: {userData.emailh}</p>
-            {/* <p className="text-gray-600">Groups: {userData.groups.length}</p> */}
-          </div>
-        </motion.div>
-      </Box>
-    </Modal>
+      {/* User Details Section */}
+      <div className="text-left">
+        <h2 className="text-xl font-semibold">{userData.name}</h2>
+        <p className="text-gray-600">Email: {userData.email}</p>
+        {/* Uncomment this if you have group data */}
+        {/* <p className="text-gray-600">Groups: {userData.groups.length}</p> */}
+      </div>
+    </motion.div>
   );
 };
 
