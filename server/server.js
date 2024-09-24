@@ -155,8 +155,17 @@ app.get('/me', authMiddleware, async (req, res) => {
 app.get('/userName', authMiddleware, async (req, res) => {
     const {userId} = req.body;
     const user = await User.findById(userId);
-    res.json(user.fullName);
-})
+    res.json({
+        name : user.fullName,
+        email : user.email,
+    });
+});
+
+// app.get('/userProfile', authMiddleware, async(req, res) => {
+//     const {userId} = req.body;
+//     const user = await User.findById(userId);
+//     res.json(user);
+// })
 
 //create a group
 app.post('/group', authMiddleware, async (req, res) => {
@@ -410,6 +419,90 @@ app.get('/groups/:groupId/messages', authMiddleware, async (req, res) => {
     }
 });
 
+//delete all message between two users
+// DELETE route to remove all messages between two users
+// app.delete('/messages/delete', async (req, res) => {
+//     try {
+//       const { userId1, userId2 } = req.body;
+      
+//       const user1 = await User.findById(userId1);
+//       const user2 = await User.findById(userId2);
+  
+//       // Ensure both user IDs are provided
+//       if (!userId1 || !userId2) {
+//         return res.status(400).json({ error: "Both user IDs are required." });
+//       }
+  
+//       // Delete messages where the users are either the sender or the receiver
+//       await Message.deleteMany({
+//         $or: [
+//           { sender: user1._id, receiver: user2._id },
+//           { sender: user2._id, receiver: user1._id }
+//         ]
+//       });
+  
+//       res.status(200).json({ message: "Messages deleted successfully" });
+//     } catch (error) {
+//       console.error("Error deleting messages:", error);
+//       res.status(500).json({ error: "Server error while deleting messages." });
+//     }
+//   });
+
+app.delete('/messages/delete', authMiddleware, async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      const user1 = await User.findById(req.user._id);
+      const user2 = await User.findById(userId);
+  
+      // Ensure both user IDs are provided
+      if (!user1 || !user2) {
+        return res.status(400).json({ error: "send receiver's id" });
+      }
+  
+      // Delete messages where the users are either the sender or the receiver
+      await Message.deleteMany({
+        $or: [
+          { sender: user1._id, receiver: user2._id },
+          { sender: user2._id, receiver: user1._id }
+        ]
+      });
+  
+      res.status(200).json({ message: "Messages deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting messages:", error);
+      res.status(500).json({ error: "Server error while deleting messages." });
+    }
+  });
+
+app.delete('/groupmessages/delete/', authMiddleware, async (req, res) => {
+    try {
+      const { groupId } = req.body;
+      
+      const user = await User.findById(req.user._id);
+    //   const group = await User.findById(groupId);
+  
+      // Ensure both user IDs are provided
+      if (!user || !groupId) {
+        return res.status(400).json({ error: "send group id" });
+      }
+  
+      // Delete messages where the users are either the sender or the receiver
+      await Message.deleteMany({
+        $or: [
+          { sender: user._id, groupId : groupId },
+        ]
+      });
+  
+      res.status(200).json({ message: "Messages deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting messages:", error);
+      res.status(500).json({ error: "Server error while deleting messages." });
+    }
+  });
+
+
+  
 // app.post('/upload', authMiddleware, upload.single('file'), (req, res) => {
 //     if(!req.file){
 //         return res.status(400).json({message : 'NO file uploaded'});
