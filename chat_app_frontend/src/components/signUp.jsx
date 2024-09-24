@@ -4,14 +4,17 @@ import { motion } from 'framer-motion';
 import { gsap } from 'gsap';
 import Particles from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
-import axios from 'axios'; // Import axios
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import GoogleIcon from '@mui/icons-material/Google';
+import GitHubIcon from '@mui/icons-material/GitHub';
 
 const images = [
   'https://media.istockphoto.com/id/480336296/photo/tracked-excavators.jpg?s=2048x2048&w=is&k=20&c=UKB4a0hylVCaKL_Qz29J8xZVuUVkF8b4u3n_w1OQOQs=',
   'https://plus.unsplash.com/premium_photo-1661951710685-a676c4190c19?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   'https://images.unsplash.com/photo-1622645636770-11fbf0611463?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 ];
+
 
 const SignUp = () => {
   const [currentBg, setCurrentBg] = useState(0);
@@ -47,16 +50,14 @@ const SignUp = () => {
     await loadFull(main);
   };
 
-  // Handle form changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Make the API call to backend using Axios
+    // Make the API call to backend using Axios for signup
     try {
       const response = await axios.post('http://localhost:3000/signup', formData);
       console.log('Signup successful:', response.data);
@@ -65,6 +66,14 @@ const SignUp = () => {
       console.error('Error during signup:', error.response?.data);
       setError(error.response?.data.message || 'Something went wrong');
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.open('http://localhost:3000/auth/google', '_self');
+  };
+
+  const handleGitHubLogin = () => {
+    window.open('http://localhost:3000/auth/github', '_self');
   };
 
   return (
@@ -204,6 +213,29 @@ const SignUp = () => {
               Sign Up
             </Button>
           </form>
+
+          {/* OAuth Buttons */}
+          <div className="flex flex-col space-y-4">
+            <Button
+              variant="outlined"
+              startIcon={<GoogleIcon />}
+              onClick={handleGoogleLogin}
+              fullWidth
+              className="bg-white text-black border-black hover:bg-gray-100 shadow-lg"
+            >
+              Sign Up with Google
+            </Button>
+
+            <Button
+              variant="outlined"
+              startIcon={<GitHubIcon />}
+              onClick={handleGitHubLogin}
+              fullWidth
+              className="bg-white text-black border-black hover:bg-gray-100 shadow-lg"
+            >
+              Sign Up with GitHub
+            </Button>
+          </div>
 
           <div className="text-center">
             <p className="text-gray-600">

@@ -6,6 +6,11 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const socketIO = require('socket.io');
 const http = require('http');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const GitHubStrategy = require('passport-github').Strategy;
+const session = require('express-session'); 
+require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
@@ -13,6 +18,16 @@ const io = socketIO(server);
 
 app.use(cors());
 app.use(express.json());
+
+app.use(session({
+    secret: 'SeCr3t', // Replace with a strong secret key
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set to true if using HTTPS
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 const jwt_secret = "SeCr3t";
 const PORT = process.env.PORT || 3000;
@@ -69,6 +84,78 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
+//passport for google strategy
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: '/auth/google/callback',
+}, async (accessToken, refreshToken, profile, done) => {
+    try {
+        const existingUser = await User.findOne({ email: profile.emails[0].value });
+        if (existingUser) {
+            const token = jwt.sign({ _id: existingUser._id }, jwt_secret, { expiresIn: '1h' });
+            return done(null, { user: existingUser, token }); // Return user and token
+        }
+        
+        const newUser = new User({
+            fullName: profile.displayName,
+            email: profile.emails[0].value,
+            password: null // No password for OAuth users
+        });
+        
+        await newUser.save();
+        const token = jwt.sign({ _id: newUser._id }, jwt_secret, { expiresIn: '1h' });
+        done(null, { user: newUser, token }); // Return user and token
+    } catch (error) {
+        done(error);
+    }
+}));
+
+
+//passport for github sttrategy
+passport.use(new GitHubStrategy({
+    clientID: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    callbackURL: '/auth/github/callback',
+}, async (accessToken, refreshToken, profile, done) => {
+    try {
+        // Check if the profile has emails
+        const emails = profile.emails || []; // Ensure emails is an array
+        const email = emails.length > 0 ? emails[0].value : null; // Get the first email if available
+
+        if (!email) {
+            return done(new Error("No email found for this GitHub account."), null);
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            const token = jwt.sign({ _id: existingUser._id }, jwt_secret, { expiresIn: '1h' });
+            return done(null, { user: existingUser, token }); // Return user and token
+        }
+        
+        const newUser = new User({
+            fullName: profile.displayName,
+            email: email,
+            password: null // No password for OAuth users
+        });
+        
+        await newUser.save();
+        const token = jwt.sign({ _id: newUser._id }, jwt_secret, { expiresIn: '1h' });
+        done(null, { user: newUser, token }); // Return user and token
+    } catch (error) {
+        done(error);
+    }
+}));
+
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+    const user = await User.findById(id);
+    done(null, user);
+});
+
 // Signup route
 app.post('/signup', async (req, res) => {
     const { fullName, email, password, confirmPassword } = req.body;
@@ -115,6 +202,16 @@ app.post('/login', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "Server error" });
     }
+});
+
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: 'http://localhost:5173/' }), (req, res) => {
+    res.redirect('http://localhost:5173/chat'); // Redirect to a protected route or home page
+});
+
+app.get('/auth/github', passport.authenticate('github'));
+app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: 'http://localhost:5173/' }), (req, res) => {
+    res.redirect('http://localhost:5173/chat'); // Redirect to a protected route or home page
 });
 
 //logout route

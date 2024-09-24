@@ -6,6 +6,8 @@ import Particles from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; 
+import GoogleIcon from '@mui/icons-material/Google';
+import GitHubIcon from '@mui/icons-material/GitHub';
 
 const images = [
   'https://media.istockphoto.com/id/480336296/photo/tracked-excavators.jpg?s=2048x2048&w=is&k=20&c=UKB4a0hylVCaKL_Qz29J8xZVuUVkF8b4u3n_w1OQOQs=',
@@ -13,7 +15,7 @@ const images = [
   'https://images.unsplash.com/photo-1622645636770-11fbf0611463?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 ];
 
-const LoginPage = () => {
+const WelcomePage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -22,15 +24,11 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/login', {
-        email,
-        password
-      });
+      const response = await axios.post('http://localhost:3000/login', { email, password });
 
       if (response.status === 200) {
         console.log('Login successful:', response.data);
         localStorage.setItem('token', response.data.token);
-
         navigate('/chat');
       } else {
         setError('Invalid credentials');
@@ -39,6 +37,16 @@ const LoginPage = () => {
       setError('Error during login. Please try again.');
       console.error(err);
     }
+  };
+
+  // Handle Google login
+  const handleGoogleLogin = () => {
+    window.open('http://localhost:3000/auth/google', '_self');
+  };
+
+  // Handle GitHub login  
+  const handleGitHubLogin = () => {
+    window.open('http://localhost:3000/auth/github', '_self');
   };
 
   const particlesInit = async (main) => {
@@ -72,22 +80,8 @@ const LoginPage = () => {
               enable: true,
               speed: 4,
               direction: 'none',
-              random: false,
-              straight: false,
               out_mode: 'out',
-              bounce: false,
               attract: { enable: true, rotateX: 600, rotateY: 1200 },
-            },
-          },
-          interactivity: {
-            events: {
-              onhover: { enable: true, mode: 'repulse' },
-              onclick: { enable: true, mode: 'push' },
-              resize: true,
-            },
-            modes: {
-              repulse: { distance: 100 },
-              push: { particles_nb: 4 },
             },
           },
         }}
@@ -154,6 +148,29 @@ const LoginPage = () => {
             Login
           </Button>
 
+          {/* OAuth Buttons */}
+          <div className="flex flex-col space-y-4">
+            <Button
+              variant="contained"
+              className="py-3 bg-white text-black border border-gray-300 hover:bg-gray-100 shadow-md rounded-lg transition-all"
+              startIcon={<GoogleIcon />}
+              onClick={handleGoogleLogin}
+              fullWidth
+            >
+              Login with Google
+            </Button>
+            
+            <Button
+              variant="contained"
+              className="py-3 bg-white text-black border border-gray-300 hover:bg-gray-100 shadow-md rounded-lg transition-all"
+              startIcon={<GitHubIcon />}
+              onClick={handleGitHubLogin}
+              fullWidth
+            >
+              Login with GitHub
+            </Button>
+          </div>
+
           <div className="text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}
@@ -168,4 +185,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default WelcomePage;
