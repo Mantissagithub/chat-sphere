@@ -1,7 +1,4 @@
-Here’s the updated README in Markdown format:
-
-```md
-# Chat App
+# ChatSphere
 
 This is a fully functional chat application built using the **MERN stack**. It includes features like adding friends, creating groups, and managing group conversations. While **WebRTC** is not yet integrated, it is planned for future updates to enhance real-time communication.
 
@@ -58,5 +55,4 @@ There are some OAuth provider errors that need to be addressed. Please feel free
 
 ---
 
-Check out the repository: [Chat App GitHub Repo](https://github.com/Mantissagithub/cat-hackathon-website)
-```
+Check out the repository: [ChatSphere GitHub Repo](https://github.com/Mantissagithub/cat-hackathon-website)
