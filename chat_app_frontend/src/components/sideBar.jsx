@@ -223,7 +223,7 @@ const SideBar = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <CreateGroups onClose={handleCreateGroupClose} />  {/* Pass handleCreateGroupClose */}
+            <CreateGroups darkMode={darkMode} onClose={handleCreateGroupClose} />
           </motion.div>
         </Box>
       </Modal>

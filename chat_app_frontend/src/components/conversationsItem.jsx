@@ -51,7 +51,7 @@ const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {
       {/* Render users */}
       {users.length > 0 && (
         <div>
-          <h2 className={`text-lg ${darkMode ? 'text-white' : 'text-black'}`}>Users</h2>
+          <h2 className={`text-lg text-white`}>Users</h2>
           {users.map(user => (
             <motion.div 
               key={user._id}
@@ -79,7 +79,7 @@ const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {
       {/* Render groups */}
       {groups.length > 0 && (
         <div className="mt-6">
-          <h2 className={`text-lg ${darkMode ? 'text-white' : 'text-black'}`}>Groups</h2>
+          <h2 className={`text-lg text-white`}>Groups</h2>
           {groups.map(group => (
             <motion.div 
               key={group._id}

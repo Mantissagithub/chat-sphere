@@ -3,6 +3,7 @@ import SideBar from "./sideBar";
 import WorkArea from "./workArea";
 import ConversationsItem from "./conversationsItem"; // Import ConversationsItem
 import { motion } from 'framer-motion';
+import gsap from 'gsap';
 
 const images = [
   'https://media.istockphoto.com/id/480336296/photo/tracked-excavators.jpg?s=2048x2048&w=is&k=20&c=UKB4a0hylVCaKL_Qz29J8xZVuUVkF8b4u3n_w1OQOQs=',
@@ -13,28 +14,32 @@ const images = [
 const MainContent = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
-  // const [selectedUserOrGroup, setSelectedUserOrGroup] = useState(null); // State for selected user/group
   const [selectedUser, setSelectedUser] = useState(null); 
   const [selectedGroup, setSelectedGroup] = useState(null); 
 
-  // Function to cycle through the images
+  // Function to cycle through the images using GSAP
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImage((prevImage) => (prevImage + 1) % images.length);
-    }, 5000); // Change image every 5 seconds
-    return () => clearInterval(interval); // Cleanup interval on component unmount
+      gsap.to(".background-image", {
+        opacity: 0,
+        duration: 1.5,
+        onComplete: () => {
+          setCurrentImage((prevImage) => (prevImage + 1) % images.length);
+          gsap.to(".background-image", { opacity: 1, duration: 1.5 });
+        },
+      });
+    }, 5000);
+    return () => clearInterval(interval); 
   }, []);
 
   const handleUserSelect = (user) => {
-    console.log("Selected User:", user);
     setSelectedUser(user);
-    setSelectedGroup(null); // Clear selected group if user is selected
+    setSelectedGroup(null);
   };
 
   const handleGroupSelect = (group) => {
-    console.log("Selected Group:", group);
     setSelectedGroup(group);
-    setSelectedUser(null); // Clear selected user if group is selected
+    setSelectedUser(null);
   };
 
   return (
@@ -44,18 +49,17 @@ const MainContent = () => {
         backgroundImage: `url(${images[currentImage]})`, 
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        transition: 'background-image 2s ease-in ease-out',
       }}
     >
       {/* Semi-transparent overlay */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black opacity-40 z-0"></div>
+      <div className="absolute top-0 left-0 w-full h-full bg-black opacity-50 z-0"></div>
 
       {/* Main Content Container */}
       <motion.div 
-        className="relative flex flex-col items-center justify-center container mx-auto bg-white text-gray-800 shadow-2xl h-[calc(100vh-2rem)] max-w-7xl w-full rounded-xl overflow-hidden m-4 z-10"
-        initial={{ opacity: 0, scale: 0.9 }}
+        className="relative flex flex-col items-center justify-center container mx-auto bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 shadow-2xl h-[calc(100vh-2rem)] max-w-7xl w-full rounded-2xl overflow-hidden m-4 z-10"
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: "easeInOut" }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
       >
         {/* Main Flex Container */}
         <motion.div 
@@ -72,12 +76,12 @@ const MainContent = () => {
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
             {/* Sidebar */}
-            <div className="h-1/3 bg-blue-500 p-4">
+            <div className="h-1/3 bg-blue-500 dark:bg-blue-700 p-4 shadow-lg rounded-xl hover:shadow-2xl transition-all">
               <SideBar />
             </div>
 
             {/* Conversations List */}
-            <div className="h-2/3 bg-gray-100 p-4 overflow-y-auto">
+            <div className="h-2/3 bg-gray-100 dark:bg-gray-800 p-4 overflow-y-auto shadow-md rounded-xl hover:shadow-2xl transition-all">
               <ConversationsItem 
                 darkMode={darkMode} 
                 onSelectUser={handleUserSelect} 
@@ -88,12 +92,12 @@ const MainContent = () => {
 
           {/* WorkArea Section */}
           <motion.div 
-            className="w-2/3 p-6 flex flex-col space-y-6 bg-white text-black h-full"
+            className="w-2/3 p-6 flex flex-col space-y-6 bg-white dark:bg-gray-700 text-black dark:text-white h-full shadow-lg rounded-xl hover:shadow-2xl transition-all"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <WorkArea  selectedUser={selectedUser} selectedGroup={selectedGroup} /> {/* Pass selected user/group */}
+            <WorkArea selectedUser={selectedUser} selectedGroup={selectedGroup} />
           </motion.div>
         </motion.div>
       </motion.div>
