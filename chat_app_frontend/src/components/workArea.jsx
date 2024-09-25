@@ -10,6 +10,27 @@ import ReceiverModal from "./receiverUserFilePopup"; // Import the ReceiverModal
 
 const socket = io("http://localhost:3000");
 
+const formatTimestamp = (timestamp) => {
+  const messageDate = new Date(timestamp);
+  const now = new Date();
+
+  const isToday = messageDate.toDateString() === now.toDateString();
+  const isYesterday =
+    messageDate.toDateString() === new Date(now.setDate(now.getDate() - 1)).toDateString();
+
+  const time = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (isToday) {
+    return `Today at ${time}`;
+  } else if (isYesterday) {
+    return `Yesterday at ${time}`;
+  } else {
+    const options = { weekday: 'long' };
+    const day = messageDate.toLocaleDateString(undefined, options);
+    return `${day} at ${time}`;
+  }
+};
+
 const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
@@ -242,7 +263,7 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
                   <p className="text-xs font-semibold">{msg.senderName}</p>
                   <p className="text-sm">{msg.content}</p>
                   <p className="text-xs text-gray-500">
-                    {new Date(msg.timeStamp).toLocaleTimeString()}
+                    {formatTimestamp(msg.timeStamp)}
                   </p>
                 </div>
               </motion.div>

@@ -41,7 +41,7 @@ mongoose
 const userSchema = new mongoose.Schema({
     fullName: { type: String, required: true },
     email: { type: String, required: true },
-    password: { type: String, required: true },
+    password: { type: String},
     isOnline : {type : Boolean, default : false},
     socketId : String,
     friends : [{type : mongoose.Schema.Types.ObjectId, ref : 'User'}],
@@ -148,7 +148,7 @@ passport.use(new GitHubStrategy({
 }));
 
 passport.serializeUser((user, done) => {
-    done(null, user.id);
+    done(null, user.user._id); // Access the user's _id
 });
 
 passport.deserializeUser(async (id, done) => {

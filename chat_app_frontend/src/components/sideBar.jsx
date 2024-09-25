@@ -155,7 +155,7 @@ const SideBar = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <AddFriend darkMode={darkMode} />
+            <AddFriend darkMode={darkMode}  onClose={handleAddFriendClose}/>
           </motion.div>
         </Box>
       </Modal>
@@ -189,7 +189,41 @@ const SideBar = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <AddGroup darkMode={darkMode} />
+            <AddGroup darkMode={darkMode}  onClose={handleAddGroupClose} />
+          </motion.div>
+        </Box>
+      </Modal>
+
+      {/* CreateGroup Modal */}
+      <Modal
+        open={openCreateGroup}
+        onClose={handleCreateGroupClose}
+        aria-labelledby="create-group-modal"
+        aria-describedby="modal-to-create-a-new-group"
+        closeAfterTransition
+        BackdropProps={{
+          timeout: 500,
+        }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: darkMode ? 'grey.900' : 'white',
+            boxShadow: 24,
+            p: 4,
+            width: 400,
+            borderRadius: 2,
+          }}
+        >
+          <motion.div 
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          >
+            <CreateGroups onClose={handleCreateGroupClose} />  {/* Pass handleCreateGroupClose */}
           </motion.div>
         </Box>
       </Modal>
