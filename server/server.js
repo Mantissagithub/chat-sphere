@@ -47,7 +47,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true },
     password: { type: String},
     isOnline : {type : Boolean, default : false},
-    socketId : String,
+    peerId : String,
     friends : [{type : mongoose.Schema.Types.ObjectId, ref : 'User'}],
     groups : [{type : mongoose.Schema.Types.ObjectId, ref : 'Group'}],
 });
@@ -619,7 +619,8 @@ io.on('connection', (socket) => {
     socket.on('join', async(userId) => {
         let user = await User.findOne(userId);
         if(user){
-            user.socketId = socket.is;
+            const peerId = socket.id;
+            user.peerId = peerId;
             user.isOnline = true;
             await user.save();
         }
@@ -631,10 +632,11 @@ io.on('connection', (socket) => {
         console.log(`User ${user.fullName} joined with ID ${user.socketId}`);
     });
 
-    socket.on('getPeerId', (userId) => {
-        const user = getUserById(req.user._id); 
-        if (user && user.socketId) {
-            socket.emit('receivePeerId', user.socketId); 
+    socket.on('getPeerId', async(userId) => {
+        const user = await User.findById(userId); 
+        if (user && user.peerId) {
+            console.log(`Sending Peer ID for user ${user.fullName}:`, user.peerId); 
+            socket.emit('receivePeerId', user.peerId); 
         }
     });
 

@@ -3,11 +3,13 @@ import { TextField, IconButton, Modal, Box } from "@mui/material"; // Added Moda
 import SendIcon from "@mui/icons-material/Send";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import VideoCallIcon from '@mui/icons-material/VideoCall';
+// import VideoCallIcon from '@mui/icons-material/VideoCall';
 import { motion } from "framer-motion";
 import axios from "axios";
 import io from "socket.io-client";
-import VideoCall from "./videoCall";
+import CallApp from "./callApp";
+import CallMadeIcon from '@mui/icons-material/CallMade';
+import CallReceivedIcon from '@mui/icons-material/CallReceived';
 import ReceiverModal from "./receiverUserFilePopup"; // Import the ReceiverModal component
 
 const socket = io("http://localhost:3000");
@@ -40,7 +42,8 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
   const [userColors, setUserColors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [remotePeerId, setRemotePeerId] = useState('');
+  // const [remotePeerId, setRemotePeerId] = useState('');
+  const [isInitiator, setIsInitiator] = useState(false);
   const messageContainerRef = useRef(null);
 
   // Function to toggle modal visibility
@@ -48,9 +51,18 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
     setIsModalOpen(!isModalOpen);
   };
 
-  const toggleVideoModal = () => {
-    setIsVideoModalOpen(!isVideoModalOpen);
-  }
+  // const toggleVideoModal = () => {
+  //   setIsVideoModalOpen(!isVideoModalOpen);
+  // }
+
+  const openVideoModal = (isStartingCall) => {
+    setIsInitiator(isStartingCall);
+    setIsVideoModalOpen(true);
+  };
+
+  const closeVideoModal = () => {
+    setIsVideoModalOpen(false);
+  };
 
   // Function to generate random color
   const generateRandomColor = (prevColor) => {
@@ -128,21 +140,22 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (selectedUser && selectedUser._id !== currentUser?._id) {
-        socket.emit("getPeerId", selectedUser._id);
+  // useEffect(() => {
+  //   if (selectedUser) {
+  //       socket.emit("getPeerId", selectedUser._id);
 
-        const handleReceivePeerId = (peerId) => {
-            setRemotePeerId(peerId); 
-        };
+  //       const handleReceivePeerId = (peerId) => {
+  //           console.log('Received Peer ID:', peerId);
+  //           setRemotePeerId(peerId); 
+  //       };
 
-        socket.on("receivePeerId", handleReceivePeerId);
+  //       socket.on("receivePeerId", handleReceivePeerId);
 
-        return () => {
-            socket.off("receivePeerId", handleReceivePeerId);
-        };
-    }
-  }, [selectedUser, currentUser]);
+  //       return () => {
+  //           socket.off("receivePeerId", handleReceivePeerId);
+  //       };
+  //   }
+  // }, [selectedUser]);
 
 
   // Scroll to the latest message when new messages are added
@@ -258,8 +271,11 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
             ? selectedGroup?.name || "Select a conversation"
             : selectedUser?.fullName || "Select a conversation"}
         </motion.h2>
-        <IconButton className="text-gray-400 hover:text-red-500 transition-colors" onClick={toggleVideoModal}>
-           <VideoCallIcon/>
+        <IconButton className="text-gray-400 hover:text-green-500 transition-colors" onClick={() => openVideoModal(true)}>
+          <CallMadeIcon /> {/* Start Video Call Icon */}
+        </IconButton>
+        <IconButton className="text-gray-400 hover:text-blue-500 transition-colors" onClick={() => openVideoModal(false)}>
+          <CallReceivedIcon/>
         </IconButton>
         <IconButton className="text-gray-400 hover:text-red-500 transition-colors" onClick={handleDelete}>
           <DeleteOutlineIcon />
@@ -363,7 +379,7 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
         </Modal>
       )}
 
-      {isVideoModalOpen && (
+      {/* {isVideoModalOpen && (
         <Modal
           open={true}
           onClose={toggleVideoModal}
@@ -396,8 +412,29 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
               <VideoCall selectedUser={selectedUser} remotePeerId={remotePeerId}/>
             </motion.div>
           </Box>
-        </Modal>
-      )}
+        </Modal> */}
+
+      {/* )} */}
+      {/* Modal for showing video call option */}
+      <Modal open={isVideoModalOpen} onClose={closeVideoModal}>
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          bgcolor: '#222',
+          boxShadow: 24,
+          p: 4,
+          borderRadius: '10px',
+          width: '80%',
+          height: '70%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <CallApp isInitiator={isInitiator} />
+        </Box>
+      </Modal>
     </motion.div>
   );
 };
