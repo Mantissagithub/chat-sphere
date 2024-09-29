@@ -1,22 +1,24 @@
 # ChatSphere
 
-This is a fully functional chat application built using the **MERN stack**. It includes features like adding friends, creating groups, and managing group conversations. While **WebRTC** is not yet integrated, it is planned for future updates to enhance real-time communication.
+This is a fully functional chat application built using the **MERN stack**. It includes features like adding friends, creating groups, and managing group conversations. **WebRTC is now integrated**, enhancing real-time communication capabilities.
 
 ## Features
 - **User management**: Add and manage friends, groups, and group conversations.
 - **Real-time messaging**: Powered by **Socket.io** (WebSockets) for real-time updates.
+- **Voice and video communication**: Enabled through **WebRTC** for seamless audio and video interactions.
 - **Conversation management**: Delete conversations, manage group chats, and more.
 - **Responsive design**: The UI is built with **Tailwind CSS** and enhanced with animations from **GSAP** and **Framer Motion**.
 - **Icons**: UI icons are sourced from **MUI Icons** for clean and modern visuals.
 
 ## Planned Updates
-- Integration of **WebRTC** for future real-time voice and video communication.
+- Further enhancements to the **WebRTC** integration for improved communication features.
 
 ## Tech Stack
 - **Frontend**: React (Tailwind CSS, Framer Motion, GSAP for animations)
 - **Backend**: Node.js, Express
 - **Database**: MongoDB
 - **Real-time connection**: Socket.io (WebSockets)
+- **Voice and video communication**: WebRTC
 - **Icons**: MUI Icons
 
 ## Setup Instructions
