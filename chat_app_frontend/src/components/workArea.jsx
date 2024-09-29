@@ -3,9 +3,11 @@ import { TextField, IconButton, Modal, Box } from "@mui/material"; // Added Moda
 import SendIcon from "@mui/icons-material/Send";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import VideoCallIcon from '@mui/icons-material/VideoCall';
 import { motion } from "framer-motion";
 import axios from "axios";
 import io from "socket.io-client";
+import VideoCall from "./videoCall";
 import ReceiverModal from "./receiverUserFilePopup"; // Import the ReceiverModal component
 
 const socket = io("http://localhost:3000");
@@ -37,12 +39,18 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userColors, setUserColors] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [remotePeerId, setRemotePeerId] = useState('');
   const messageContainerRef = useRef(null);
 
   // Function to toggle modal visibility
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
+
+  const toggleVideoModal = () => {
+    setIsVideoModalOpen(!isVideoModalOpen);
+  }
 
   // Function to generate random color
   const generateRandomColor = (prevColor) => {
@@ -119,6 +127,23 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
       socket.off("groupMessage", handleIncomingMessage);
     };
   }, []);
+
+  useEffect(() => {
+    if (selectedUser && selectedUser._id !== currentUser?._id) {
+        socket.emit("getPeerId", selectedUser._id);
+
+        const handleReceivePeerId = (peerId) => {
+            setRemotePeerId(peerId); 
+        };
+
+        socket.on("receivePeerId", handleReceivePeerId);
+
+        return () => {
+            socket.off("receivePeerId", handleReceivePeerId);
+        };
+    }
+  }, [selectedUser, currentUser]);
+
 
   // Scroll to the latest message when new messages are added
   useEffect(() => {
@@ -233,6 +258,9 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
             ? selectedGroup?.name || "Select a conversation"
             : selectedUser?.fullName || "Select a conversation"}
         </motion.h2>
+        <IconButton className="text-gray-400 hover:text-red-500 transition-colors" onClick={toggleVideoModal}>
+           <VideoCallIcon/>
+        </IconButton>
         <IconButton className="text-gray-400 hover:text-red-500 transition-colors" onClick={handleDelete}>
           <DeleteOutlineIcon />
         </IconButton>
@@ -330,6 +358,42 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
               transition={{ duration: 0.5, ease: "easeInOut" }}
             >
               <ReceiverModal userId={selectedUser._id} darkMode={darkMode} />
+            </motion.div>
+          </Box>
+        </Modal>
+      )}
+
+      {isVideoModalOpen && (
+        <Modal
+          open={true}
+          onClose={toggleVideoModal}
+          aria-labelledby="video-call-modal"
+          aria-describedby="modal-for-video-call"
+          closeAfterTransition
+          BackdropProps={{
+            timeout: 500,
+          }}
+        >
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              bgcolor: darkMode ? "grey.900" : "white",
+              boxShadow: 24,
+              p: 4,
+              width: 600,
+              height: 400,
+              borderRadius: 2,
+            }}
+          >
+            <motion.div
+              initial={{ y: -100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+            >
+              <VideoCall selectedUser={selectedUser} remotePeerId={remotePeerId}/>
             </motion.div>
           </Box>
         </Modal>

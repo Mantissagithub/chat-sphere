@@ -10,6 +10,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github').Strategy;
 const session = require('express-session'); 
+const {ExpressPeerServer} = require('peer');
 require('dotenv').config();
 
 const app = express();
@@ -18,6 +19,9 @@ const io = socketIO(server);
 
 app.use(cors());
 app.use(express.json());
+
+const peerServer = ExpressPeerServer(server, {debug : true});
+app.use('/webrtc', peerServer);
 
 app.use(session({
     secret: 'SeCr3t', // Replace with a strong secret key
@@ -625,6 +629,13 @@ io.on('connection', (socket) => {
         io.emit('userStatusUpdate', user);
 
         console.log(`User ${user.fullName} joined with ID ${user.socketId}`);
+    });
+
+    socket.on('getPeerId', (userId) => {
+        const user = getUserById(req.user._id); 
+        if (user && user.socketId) {
+            socket.emit('receivePeerId', user.socketId); 
+        }
     });
 
     socket.on('joinGroup', (groupId) => {
