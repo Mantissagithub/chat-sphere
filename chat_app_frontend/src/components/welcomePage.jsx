@@ -39,15 +39,15 @@ const WelcomePage = () => {
     }
   };
 
-  // Handle Google login
-  const handleGoogleLogin = () => {
-    window.open('http://localhost:3000/auth/google', '_self');
-  };
+  // // Handle Google login
+  // const handleGoogleLogin = () => {
+  //   window.open('http://localhost:3000/auth/google', '_self');
+  // };
 
-  // Handle GitHub login  
-  const handleGitHubLogin = () => {
-    window.open('http://localhost:3000/auth/github', '_self');
-  };
+  // // Handle GitHub login  
+  // const handleGitHubLogin = () => {
+  //   window.open('http://localhost:3000/auth/github', '_self');
+  // };
 
   const particlesInit = async (main) => {
     await loadFull(main);
@@ -148,7 +148,7 @@ const WelcomePage = () => {
             Login
           </Button>
 
-          {/* OAuth Buttons */}
+          {/* OAuth Buttons
           <div className="flex flex-col space-y-4">
             <Button
               variant="contained"
@@ -169,7 +169,7 @@ const WelcomePage = () => {
             >
               Login with GitHub
             </Button>
-          </div>
+          </div> */}
 
           <div className="text-center">
             <p className="text-gray-600">

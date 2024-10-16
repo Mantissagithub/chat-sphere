@@ -68,13 +68,13 @@ const SignUp = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.open('http://localhost:3000/auth/google', '_self');
-  };
+  // const handleGoogleLogin = () => {
+  //   window.open('http://localhost:3000/auth/google', '_self');
+  // };
 
-  const handleGitHubLogin = () => {
-    window.open('http://localhost:3000/auth/github', '_self');
-  };
+  // const handleGitHubLogin = () => {
+  //   window.open('http://localhost:3000/auth/github', '_self');
+  // };
 
   return (
     <div
@@ -214,7 +214,7 @@ const SignUp = () => {
             </Button>
           </form>
 
-          {/* OAuth Buttons */}
+          {/* OAuth Buttons
           <div className="flex flex-col space-y-4">
             <Button
               variant="outlined"
@@ -235,7 +235,7 @@ const SignUp = () => {
             >
               Sign Up with GitHub
             </Button>
-          </div>
+          </div> */}
 
           <div className="text-center">
             <p className="text-gray-600">
