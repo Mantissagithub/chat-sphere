@@ -47,29 +47,30 @@ const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {
   }, []);  // Run once when the component mounts
 
   return (
-    <div>
+    <div className="p-2 space-y-2">
       {/* Render users */}
       {users.length > 0 && (
         <div>
-          <h2 className={`text-lg text-white`}>Users</h2>
+          <h2 className={`text-lg font-semibold mb-2 px-2 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Users</h2>
           {users.map(user => (
-            <motion.div 
+            <motion.div
               key={user._id}
-              className={`flex items-center p-4 rounded-lg cursor-pointer transition-all duration-300 ease-in-out shadow-md mb-2 
-              ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}
+              className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ease-in-out mb-2
+                          ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-100'}
+                          hover:shadow-md dark:hover:shadow-lg-dark`}
               onClick={() => onSelectUser(user)}
-              whileHover={{ scale: 1.05, boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.3)" }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: 20 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
               <div className="flex-shrink-0">
-                <AccountCircleIcon className={`${darkMode ? 'text-yellow-500' : 'text-yellow-600'} text-3xl`} />
+                <AccountCircleIcon className={`${darkMode ? 'text-blue-400' : 'text-blue-600'} text-3xl`} />
               </div>
-              <div className="ml-4 flex flex-col justify-center">
-                <p className={`text-base font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>{user.fullName}</p>
-                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Last message snippet...</p>
+              <div className="ml-3 flex flex-col justify-center">
+                <p className={`text-sm font-medium ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{user.fullName}</p>
+                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Last message snippet...</p>
               </div>
             </motion.div>
           ))}
@@ -78,26 +79,27 @@ const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {
 
       {/* Render groups */}
       {groups.length > 0 && (
-        <div className="mt-6">
-          <h2 className={`text-lg text-white`}>Groups</h2>
+        <div className="mt-4">
+          <h2 className={`text-lg font-semibold mb-2 px-2 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Groups</h2>
           {groups.map(group => (
-            <motion.div 
-              key={group._id}
-              className={`flex items-center p-4 rounded-lg cursor-pointer transition-all duration-300 ease-in-out shadow-md mb-2 
-              ${darkMode ? 'bg-gray-800 hover:bg-gray-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-black'}`}
+            <motion.div
+              key={group._id} // Assuming group has _id, if it's group.id, change accordingly
+              className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ease-in-out mb-2
+                          ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-100'}
+                          hover:shadow-md dark:hover:shadow-lg-dark`}
               onClick={() => onSelectGroup(group)}
-              whileHover={{ scale: 1.05, boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.3)" }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: 20 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
               <div className="flex-shrink-0">
-                <GroupIcon className={`${darkMode ? 'text-blue-500' : 'text-blue-600'} text-3xl`} />
+                <GroupIcon className={`${darkMode ? 'text-green-400' : 'text-green-600'} text-3xl`} />
               </div>
-              <div className="ml-4 flex flex-col justify-center">
-                <p className={`text-base font-semibold ${darkMode ? 'text-white' : 'text-black'}`}>{group.name}</p>
-                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Group chat...</p>
+              <div className="ml-3 flex flex-col justify-center">
+                <p className={`text-sm font-medium ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{group.name}</p>
+                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Group chat...</p>
               </div>
             </motion.div>
           ))}
@@ -106,7 +108,7 @@ const ConversationsItem = ({ darkMode, onSelectUser, onSelectGroup }) => {
 
       {/* Handle empty states */}
       {users.length === 0 && groups.length === 0 && (
-        <p className={`${darkMode ? 'text-white' : 'text-black'}`}>No conversations available.</p>
+        <p className={`text-center p-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>No conversations available.</p>
       )}
     </div>
   );
