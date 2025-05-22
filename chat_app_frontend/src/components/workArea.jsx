@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { TextField, IconButton, Modal, Box } from "@mui/material"; // Added Modal and Box imports
+import { IconButton, Modal, Box } from "@mui/material"; // Added Modal and Box imports. Removed TextField
 import SendIcon from "@mui/icons-material/Send";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -260,39 +260,41 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
   };
 
   return (
-    <motion.div className="flex flex-col w-full h-full bg-transparent from-gray-800 to-gray-600 p-6 space-y-4 text-white">
+    <motion.div className={`flex flex-col w-full h-full p-6 space-y-4 ${darkMode ? "text-white bg-gray-800" : "text-black bg-gray-100"}`}>
       {/* Chat Header */}
-      <motion.div className="chatHeader flex items-center justify-between p-4 bg-gray-700 shadow-md rounded-lg border-b border-gray-600">
-        <IconButton className="text-yellow-500" onClick={toggleModal}>
+      <motion.div className={`chatHeader flex items-center justify-between p-4 shadow-md rounded-lg border-b ${darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200"}`}>
+        <IconButton className={`${darkMode ? "text-yellow-500" : "text-blue-500"} focus:outline-none`} onClick={toggleModal}>
           <AccountCircleIcon fontSize="large" />
         </IconButton>
-        <motion.h2 className="text-2xl font-bold tracking-wide">
+        <motion.h2 className={`text-2xl font-bold tracking-wide ${darkMode ? "text-white" : "text-gray-900"}`}>
           {selectedGroup
             ? selectedGroup?.name || "Select a conversation"
             : selectedUser?.fullName || "Select a conversation"}
         </motion.h2>
-        <IconButton className="text-gray-400 hover:text-green-500 transition-colors" onClick={() => openVideoModal(true)}>
-          <CallMadeIcon /> {/* Start Video Call Icon */}
-        </IconButton>
-        <IconButton className="text-gray-400 hover:text-blue-500 transition-colors" onClick={() => openVideoModal(false)}>
-          <CallReceivedIcon/>
-        </IconButton>
-        <IconButton className="text-gray-400 hover:text-red-500 transition-colors" onClick={handleDelete}>
-          <DeleteOutlineIcon />
-        </IconButton>
+        <div className="space-x-2">
+          <IconButton className={`${darkMode ? "text-gray-400 hover:text-green-400" : "text-gray-600 hover:text-green-600"} transition-colors focus:outline-none`} onClick={() => openVideoModal(true)}>
+            <CallMadeIcon /> {/* Start Video Call Icon */}
+          </IconButton>
+          <IconButton className={`${darkMode ? "text-gray-400 hover:text-blue-400" : "text-gray-600 hover:text-blue-600"} transition-colors focus:outline-none`} onClick={() => openVideoModal(false)}>
+            <CallReceivedIcon/>
+          </IconButton>
+          <IconButton className={`${darkMode ? "text-gray-400 hover:text-red-400" : "text-gray-600 hover:text-red-600"} transition-colors focus:outline-none`} onClick={handleDelete}>
+            <DeleteOutlineIcon />
+          </IconButton>
+        </div>
       </motion.div>
 
       {/* Message Container */}
       <motion.div
         ref={messageContainerRef}
-        className="messageContainer flex-1 bg-gray-700 overflow-y-auto p-6 rounded-lg shadow-inner space-y-4"
+        className={`messageContainer flex-1 overflow-y-auto p-6 rounded-lg shadow-inner space-y-4 ${darkMode ? "bg-gray-700" : "bg-white"}`}
       >
         {messages.length > 0 ? (
           messages.map((msg, index) => {
             const isFromCurrentUser = msg.sender === currentUser?.id;
-            const userColor = isFromCurrentUser
-              ? "bg-yellow-500 text-black" // Current user: Yellow
-              : ""; // Other users: Will use inline style for dynamic color
+            // const userColor = isFromCurrentUser
+            //   ? "bg-yellow-500 text-black" // Current user: Yellow
+            //   : ""; // Other users: Will use inline style for dynamic color
 
             return (
               <motion.div
@@ -300,13 +302,13 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
                 className={`flex ${isFromCurrentUser ? "justify-end" : "justify-start"} w-full`}
               >
                 <div
-                  className={`messageBubble max-w-xs p-4 rounded-2xl shadow-md text-white`}
-                  style={{ backgroundColor: userColors[msg.sender] || "#ccc" }} // Dynamic inline color
+                  className={`messageBubble max-w-xs p-3 rounded-2xl shadow-md ${darkMode ? "text-white" : "text-black"}`}
+                  style={{ backgroundColor: userColors[msg.sender] || (darkMode ? "#555" : "#ccc") }} // Dynamic inline color
                 >
                   {/* Always display sender's name */}
-                  <p className="text-xs font-semibold">{msg.senderName}</p>
+                  <p className={`text-xs font-semibold ${darkMode ? "text-gray-300" : "text-gray-700"}`}>{msg.senderName}</p>
                   <p className="text-sm">{msg.content}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     {formatTimestamp(msg.timeStamp)}
                   </p>
                 </div>
@@ -314,33 +316,36 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
             );
           })
         ) : (
-          <motion.p className="text-gray-400 text-center">
+          <motion.p className={`${darkMode ? "text-gray-400" : "text-gray-500"} text-center`}>
             Start a conversation!
           </motion.p>
         )}
       </motion.div>
 
       {/* Message Input */}
-      <motion.div className="messageInput flex items-center p-4 space-x-4 bg-gray-700 rounded-lg shadow-md">
-        <TextField
-          className="flex-1 bg-gray-800 text-white rounded-lg shadow-inner"
+      <motion.div className={`messageInput flex items-center p-4 space-x-4 rounded-lg shadow-md ${darkMode ? "bg-gray-700" : "bg-white"}`}>
+        <input
+          type="text"
+          className={`flex-1 p-3 rounded-lg border focus:ring-2 focus:border-transparent ${
+            darkMode
+              ? "bg-gray-800 text-white border-gray-600 focus:ring-blue-500"
+              : "bg-gray-100 text-gray-900 border-gray-300 focus:ring-blue-500"
+          }`}
           placeholder="Type your message"
-          variant="outlined"
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
           onKeyPress={(e) => e.key === "Enter" && sendMessage()} // Send on Enter
-          InputProps={{
-            style: {
-              color: "white", // Text color
-            },
-          }}
         />
-        <IconButton
-          className="bg-yellow-500 hover:bg-yellow-600 text-black rounded-full"
+        <button
+          className={`p-3 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+            darkMode
+              ? "bg-yellow-500 hover:bg-yellow-600 text-black focus:ring-yellow-400"
+              : "bg-blue-500 hover:bg-blue-600 text-white focus:ring-blue-400"
+          }`}
           onClick={sendMessage}
         >
           <SendIcon />
-        </IconButton>
+        </button>
       </motion.div>
 
       {/* Receiver Modal */}
@@ -396,7 +401,7 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              bgcolor: darkMode ? "grey.900" : "white",
+            bgcolor: darkMode ? "rgb(31 41 55)" : "white", // Corresponds to dark:bg-gray-800
               boxShadow: 24,
               p: 4,
               width: 600,
@@ -422,7 +427,7 @@ const WorkArea = ({ selectedUser, selectedGroup, darkMode }) => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          bgcolor: '#222',
+          bgcolor: darkMode ? "rgb(31 41 55)" : "#222", // Adjusted for dark mode consistency
           boxShadow: 24,
           p: 4,
           borderRadius: '10px',

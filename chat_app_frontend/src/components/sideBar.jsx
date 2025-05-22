@@ -9,8 +9,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CreateGroups from "./createGroups";
 import AddFriend from "./addFriend";
-import AddGroup from "./addGroup"; 
-import { IconButton, TextField, InputAdornment, Modal, Box } from "@mui/material";
+import AddGroup from "./addGroup";
+// Removed TextField and InputAdornment from "@mui/material"
+import { IconButton, Modal, Box } from "@mui/material";
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
@@ -62,63 +63,81 @@ const SideBar = () => {
 
   return (
     <motion.div 
-      className={`min-h-full flex flex-col w-full space-y-4 bg-transparent`}
+      className={`min-h-full flex flex-col w-full space-y-4 p-3 ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}
       initial={{ x: -100, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
     >
       {/* Header Section with Icons */}
-      <motion.div 
-        className={`flex justify-between items-center p-4 rounded-lg shadow-lg transition-all duration-300 ${darkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'}`}
+      <motion.div
+        className={`flex justify-between items-center p-3 rounded-xl shadow-lg transition-all duration-300 ${darkMode ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-700'}`}
         whileHover={{ scale: 1.02 }}
       >
-        <IconButton className="hover:bg-gray-600 transition-all" onClick={handleProfileModalOpen}>
-          <AccountCircleIcon fontSize="large" className={`${darkMode ? 'text-white' : 'text-black'}`} />
+        <IconButton 
+          className={`p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} transition-colors`}
+          onClick={handleProfileModalOpen}
+        >
+          <AccountCircleIcon fontSize="large" className={`${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
         </IconButton>
-        <div className="flex space-x-4">
-          <IconButton className="hover:bg-gray-600 transition-all" onClick={handleAddFriendOpen}>
-            <PersonAddIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
+        <div className="flex space-x-2">
+          <IconButton 
+            className={`p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} transition-colors`}
+            onClick={handleAddFriendOpen}
+          >
+            <PersonAddIcon className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
           </IconButton>
-          <IconButton className="hover:bg-gray-600 transition-all" onClick={handleAddGroupOpen}> 
-            <GroupAddIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
+          <IconButton 
+            className={`p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} transition-colors`}
+            onClick={handleAddGroupOpen}
+          >
+            <GroupAddIcon className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
           </IconButton>
-          <IconButton className="hover:bg-gray-600 transition-all" onClick={handleCreateGroupOpen}>
-            <AddCircleOutlineIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
+          <IconButton 
+            className={`p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} transition-colors`}
+            onClick={handleCreateGroupOpen}
+          >
+            <AddCircleOutlineIcon className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
           </IconButton>
-          <IconButton className="hover:bg-gray-600 transition-all" onClick={handleLogout}>
-            <LogoutIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
+          <IconButton 
+            className={`p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} transition-colors`}
+            onClick={handleLogout}
+          >
+            <LogoutIcon className={`${darkMode ? 'text-red-400' : 'text-red-500'}`} />
           </IconButton>
-          <IconButton className="hover:bg-gray-600 transition-all" onClick={toggleDarkMode}>
+          <IconButton 
+            className={`p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'} transition-colors`}
+            onClick={toggleDarkMode}
+          >
             {darkMode ? (
               <LightModeIcon className="text-yellow-400" />
             ) : (
-              <DarkModeIcon className="text-gray-700" />
+              <DarkModeIcon className="text-gray-600" />
             )}
           </IconButton>
         </div>
       </motion.div>
 
       {/* Search Section */}
-      <motion.div 
-        className={`p-4 rounded-lg shadow-md transition-all duration-300 ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}
+      <motion.div
+        className={`p-3 rounded-xl shadow-md transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
       >
-        <TextField
-          placeholder="Search..."
-          variant="outlined"
-          fullWidth
-          size="small"
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon className={`${darkMode ? 'text-white' : 'text-black'}`} />
-              </InputAdornment>
-            ),
-            className: `rounded-full transition-all ${darkMode ? 'bg-gray-600 text-white' : 'bg-white text-black'}`, 
-          }}
-        />
+        <div className="relative">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+            <SearchIcon className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+          </span>
+          <input
+            type="text"
+            placeholder="Search..."
+            className={`w-full py-2 pl-10 pr-4 rounded-full border transition-all 
+                        ${darkMode 
+                            ? 'bg-gray-700 text-white border-gray-600 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400' 
+                            : 'bg-gray-100 text-gray-900 border-gray-300 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500'} 
+                        focus:outline-none focus:ring-2`}
+          />
+        </div>
       </motion.div>
 
       {/* Profile Modal */}
@@ -138,19 +157,10 @@ const SideBar = () => {
         }}
       >
         <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: darkMode ? 'grey.900' : 'white',
-            boxShadow: 24,
-            p: 4,
-            width: 400,
-            borderRadius: 2,
-          }}
+          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 rounded-lg shadow-xl
+                      ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
         >
-          <motion.div 
+          <motion.div
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
@@ -172,19 +182,10 @@ const SideBar = () => {
         }}
       >
         <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: darkMode ? 'grey.900' : 'white',
-            boxShadow: 24,
-            p: 4,
-            width: 400,
-            borderRadius: 2,
-          }}
+          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 rounded-lg shadow-xl
+                      ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
         >
-          <motion.div 
+          <motion.div
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
@@ -206,19 +207,10 @@ const SideBar = () => {
         }}
       >
         <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: darkMode ? 'grey.900' : 'white',
-            boxShadow: 24,
-            p: 4,
-            width: 400,
-            borderRadius: 2,
-          }}
+          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 rounded-lg shadow-xl
+                      ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
         >
-          <motion.div 
+          <motion.div
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
